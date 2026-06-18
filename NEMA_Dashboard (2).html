@@ -1,0 +1,2644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEMA — National Situation & Knowledge Dashboard</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+  :root {
+    --green-deep:#1B3A2D;--green-mid:#2D6A4F;--green-accent:#52B788;
+    --amber:#E9C46A;--red-alert:#C1121F;--orange-warn:#E76F51;
+    --blue-ops:#1D4E89;--purple-rec:#5C4A8A;
+    --cream:#F8F5EE;--ink:#1A1A1A;--ink-light:#4A4A4A;--rule:#D4C9B5;--white:#FFFFFF;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',sans-serif;background:var(--cream);color:var(--ink);font-size:14px;line-height:1.6;}
+
+  /* MASTHEAD */
+  .masthead{background:var(--green-deep);color:var(--white);padding:0 32px;border-bottom:4px solid var(--amber);}
+  .masthead-top{display:flex;align-items:center;justify-content:space-between;padding:16px 0 12px;border-bottom:1px solid rgba(255,255,255,0.12);}
+  .masthead-logo{display:flex;align-items:center;gap:16px;}
+  .logo-emblem{width:58px;height:58px;background:var(--amber);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:12px;color:var(--green-deep);text-align:center;line-height:1.2;flex-shrink:0;}
+  .logo-text-main{font-family:'Playfair Display',serif;font-size:24px;font-weight:900;}
+  .logo-text-full{font-size:12px;color:rgba(255,255,255,0.65);margin-top:1px;}
+  .logo-text-sub{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--green-accent);margin-top:4px;}
+  .masthead-meta{text-align:right;font-family:'IBM Plex Mono',monospace;font-size:10px;color:rgba(255,255,255,0.5);line-height:1.9;}
+  .masthead-meta .edition{color:var(--amber);font-size:11px;font-weight:500;}
+  .dept-strip{background:rgba(255,255,255,0.06);padding:7px 32px;display:flex;gap:20px;border-bottom:1px solid rgba(255,255,255,0.08);overflow-x:auto;}
+  .dept-pill{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;color:rgba(255,255,255,0.5);white-space:nowrap;}
+  .dept-pill span{color:var(--green-accent);margin-right:4px;}
+
+  /* TICKER */
+  .alert-ticker{background:var(--red-alert);padding:8px 32px;display:flex;align-items:center;gap:16px;overflow:hidden;}
+  .ticker-label{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;letter-spacing:0.12em;color:var(--white);background:rgba(0,0,0,0.25);padding:2px 8px;white-space:nowrap;flex-shrink:0;}
+  .ticker-track{flex:1;overflow:hidden;}
+  .ticker-content{font-size:12px;color:var(--white);font-weight:500;white-space:nowrap;display:inline-block;animation:scroll-ticker 40s linear infinite;}
+  @keyframes scroll-ticker{0%{transform:translateX(100vw);}100%{transform:translateX(-100%);}}
+
+  /* NAV */
+  .nav-tabs{display:flex;background:var(--green-deep);padding:0 32px;overflow-x:auto;}
+  .nav-tab{font-size:10.5px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:rgba(255,255,255,0.5);padding:10px 16px;cursor:pointer;border-bottom:3px solid transparent;transition:all 0.2s;user-select:none;white-space:nowrap;}
+  .nav-tab:hover{color:var(--white);}
+  .nav-tab.active{color:var(--amber);border-bottom-color:var(--amber);}
+
+  /* LAYOUT */
+  .page{display:none;}.page.active{display:block;}
+  .layout-grid{display:grid;grid-template-columns:1fr 310px;min-height:calc(100vh - 190px);}
+  .main-col{padding:28px 32px;border-right:1px solid var(--rule);}
+  .side-col{padding:24px 20px;background:var(--white);}
+
+  /* TYPOGRAPHY */
+  .section-eyebrow{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:500;letter-spacing:0.2em;text-transform:uppercase;color:var(--green-mid);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+  .section-eyebrow::after{content:'';flex:1;height:1px;background:var(--rule);}
+  .section-eyebrow.blue{color:var(--blue-ops);}.section-eyebrow.purple{color:var(--purple-rec);}
+  .section-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--green-deep);margin-bottom:20px;line-height:1.3;}
+
+  /* HERO */
+  .hero-situation{background:var(--green-deep);color:var(--white);border-radius:4px;padding:28px 32px;margin-bottom:28px;position:relative;overflow:hidden;}
+  .hero-situation::before{content:'';position:absolute;top:0;right:0;width:220px;height:220px;background:radial-gradient(circle at top right,rgba(82,183,136,0.18) 0%,transparent 70%);}
+  .alert-badge{display:inline-flex;align-items:center;gap:6px;background:var(--red-alert);color:var(--white);font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.15em;padding:4px 10px;margin-bottom:14px;}
+  .alert-dot{width:6px;height:6px;background:var(--white);border-radius:50%;animation:pulse 1.4s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+  .hero-situation h2{font-family:'Playfair Display',serif;font-size:26px;font-weight:900;line-height:1.25;margin-bottom:10px;}
+  .hero-situation p{font-size:13px;color:rgba(255,255,255,0.75);line-height:1.7;max-width:560px;margin-bottom:18px;}
+  .hero-meta{display:flex;gap:28px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--green-accent);flex-wrap:wrap;}
+  .hero-meta span{display:flex;flex-direction:column;gap:2px;}
+  .hero-meta .label{color:rgba(255,255,255,0.4);font-size:9px;}
+
+  /* CARDS */
+  .alert-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px;}
+  .alert-card{background:var(--white);border:1px solid var(--rule);border-top:3px solid var(--rule);padding:16px;border-radius:2px;}
+  .alert-card.critical{border-top-color:var(--red-alert);}.alert-card.warning{border-top-color:var(--orange-warn);}
+  .alert-card.watch{border-top-color:var(--amber);}.alert-card.normal{border-top-color:var(--green-accent);}
+  .alert-card .zone-tag{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;color:var(--ink-light);text-transform:uppercase;margin-bottom:6px;}
+  .alert-card h4{font-weight:600;font-size:13px;margin-bottom:6px;color:var(--ink);line-height:1.3;}
+  .alert-card p{font-size:11.5px;color:var(--ink-light);line-height:1.55;margin-bottom:10px;}
+  .alert-card .card-footer{display:flex;justify-content:space-between;align-items:center;font-family:'IBM Plex Mono',monospace;font-size:9px;color:rgba(0,0,0,0.35);border-top:1px solid var(--rule);padding-top:8px;margin-top:4px;}
+  .status-pill{font-size:9px;font-family:'IBM Plex Mono',monospace;letter-spacing:0.08em;padding:2px 8px;border-radius:20px;font-weight:500;}
+  .pill-critical{background:#FEE2E2;color:var(--red-alert);}.pill-warning{background:#FEF3C7;color:#92400E;}
+  .pill-watch{background:#FFF8E7;color:#78580A;}.pill-clear{background:#D1FAE5;color:#065F46;}
+
+  /* DEPT CARDS */
+  .dept-card{background:var(--white);border:1px solid var(--rule);padding:18px 20px;margin-bottom:12px;border-radius:2px;border-left:4px solid var(--green-mid);}
+  .dept-card.ops{border-left-color:var(--blue-ops);}.dept-card.rec{border-left-color:var(--purple-rec);}
+  .dept-card.drr{border-left-color:var(--green-accent);}.dept-card.comms{border-left-color:var(--amber);}
+  .dept-card .dept-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink-light);margin-bottom:5px;}
+  .dept-card h4{font-weight:600;font-size:14px;color:var(--ink);margin-bottom:5px;}
+  .dept-card p{font-size:12px;color:var(--ink-light);line-height:1.65;margin-bottom:8px;}
+  .card-meta{font-family:'IBM Plex Mono',monospace;font-size:9px;color:rgba(0,0,0,0.38);display:flex;gap:14px;flex-wrap:wrap;}
+
+  /* FIELD REPORTS */
+  .field-report{background:var(--white);border:1px solid var(--rule);padding:18px 20px;margin-bottom:12px;border-radius:2px;display:grid;grid-template-columns:52px 1fr;gap:16px;align-items:start;}
+  .report-zone-code{background:var(--green-deep);color:var(--amber);font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;text-align:center;padding:8px 4px;line-height:1.3;border-radius:2px;}
+  .report-content h4{font-weight:600;font-size:14px;margin-bottom:5px;color:var(--ink);}
+  .report-content p{font-size:12px;color:var(--ink-light);line-height:1.6;margin-bottom:8px;}
+  .report-meta{font-family:'IBM Plex Mono',monospace;font-size:9px;color:rgba(0,0,0,0.38);display:flex;gap:14px;flex-wrap:wrap;}
+
+  /* SIDEBAR */
+  .sidebar-widget{margin-bottom:26px;padding-bottom:22px;border-bottom:1px solid var(--rule);}
+  .sidebar-widget:last-child{border-bottom:none;}
+  .widget-title{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:500;letter-spacing:0.2em;text-transform:uppercase;color:var(--green-mid);margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--green-deep);display:flex;align-items:center;justify-content:space-between;}
+  .risk-item{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .risk-item .zone-name{font-size:11px;font-weight:500;color:var(--ink);width:95px;flex-shrink:0;}
+  .risk-bar-wrap{flex:1;height:6px;background:var(--rule);border-radius:3px;overflow:hidden;}
+  .risk-bar{height:100%;border-radius:3px;}
+  .risk-bar.high{background:var(--red-alert);}.risk-bar.med{background:var(--orange-warn);}
+  .risk-bar.mod{background:var(--amber);}.risk-bar.low{background:var(--green-accent);}
+  .risk-val{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;width:32px;text-align:right;color:var(--ink-light);}
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px;}
+  .stat-box{background:var(--green-deep);color:var(--white);padding:14px;border-radius:2px;text-align:center;}
+  .stat-box .num{font-family:'Playfair Display',serif;font-size:24px;font-weight:900;line-height:1;color:var(--amber);}
+  .stat-box .lbl{font-size:10px;color:rgba(255,255,255,0.58);margin-top:4px;line-height:1.3;}
+  .event-item{display:flex;gap:12px;margin-bottom:12px;align-items:flex-start;}
+  .event-date-box{background:var(--green-deep);color:var(--white);text-align:center;padding:6px 8px;border-radius:2px;min-width:40px;flex-shrink:0;}
+  .event-date-box .day{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;line-height:1;}
+  .event-date-box .mon{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:0.1em;color:var(--amber);text-transform:uppercase;}
+  .event-info h5{font-size:12px;font-weight:600;color:var(--ink);margin-bottom:2px;line-height:1.3;}
+  .event-info p{font-size:11px;color:var(--ink-light);}
+
+  /* POLICY */
+  .policy-tag{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:0.1em;padding:2px 7px;border-radius:20px;margin-bottom:5px;text-transform:uppercase;}
+  .tag-new{background:#DCFCE7;color:#14532D;}.tag-revised{background:#EDE9FE;color:#4C1D95;}
+  .tag-circular{background:#FEF3C7;color:#78350F;}.tag-draft{background:#E0F2FE;color:#0369A1;}
+  .policy-doc{background:var(--white);border:1px solid var(--rule);padding:20px 24px;margin-bottom:14px;border-radius:2px;}
+  .policy-doc .doc-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+  .policy-doc h4{font-family:'Playfair Display',serif;font-weight:700;font-size:15px;color:var(--green-deep);line-height:1.3;max-width:420px;}
+  .policy-doc p{font-size:12px;color:var(--ink-light);line-height:1.65;margin-top:6px;}
+  .policy-item{padding:10px 0;border-bottom:1px dashed var(--rule);}
+  .policy-item:last-child{border-bottom:none;}
+  .policy-item h5{font-size:12px;font-weight:600;color:var(--ink);line-height:1.35;margin-bottom:2px;}
+  .policy-item .policy-meta{font-family:'IBM Plex Mono',monospace;font-size:9px;color:rgba(0,0,0,0.38);}
+
+  /* DATA BARS */
+  .data-section{margin-bottom:32px;}
+  .bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+  .bar-label{font-size:11px;color:var(--ink-light);width:130px;flex-shrink:0;font-weight:500;}
+  .bar-track{flex:1;height:22px;background:var(--rule);border-radius:2px;overflow:hidden;}
+  .bar-fill{height:100%;background:var(--green-mid);border-radius:2px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;}
+  .bar-fill span{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;color:var(--white);}
+  .bar-fill.amber{background:var(--amber);}.bar-fill.amber span{color:var(--green-deep);}
+  .bar-fill.red{background:var(--red-alert);}.bar-fill.blue{background:var(--blue-ops);}
+  .bar-fill.light{background:var(--green-accent);}
+
+  /* MEDIA */
+  .media-card{background:var(--white);border:1px solid var(--rule);padding:18px 20px;margin-bottom:12px;border-radius:2px;}
+  .media-card .media-type{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink-light);margin-bottom:5px;}
+  .media-card h4{font-weight:600;font-size:14px;color:var(--ink);margin-bottom:5px;line-height:1.3;}
+  .media-card p{font-size:12px;color:var(--ink-light);line-height:1.65;margin-bottom:8px;}
+  .media-card .media-footer{font-family:'IBM Plex Mono',monospace;font-size:9px;color:rgba(0,0,0,0.38);display:flex;gap:14px;border-top:1px solid var(--rule);padding-top:8px;flex-wrap:wrap;}
+
+  /* ── CONTACTS PAGE ── */
+  .contacts-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:28px;}
+  .contact-card{background:var(--white);border:1px solid var(--rule);border-top:3px solid var(--green-mid);padding:16px 18px;border-radius:2px;}
+  .contact-card.hq{border-top-color:var(--amber);}
+  .contact-card.zone-nc{border-top-color:#1D4E89;}.contact-card.zone-ne{border-top-color:#C1121F;}
+  .contact-card.zone-nw{border-top-color:#5C4A8A;}.contact-card.zone-ss{border-top-color:#2D6A4F;}
+  .contact-card.zone-se{border-top-color:#E76F51;}.contact-card.zone-sw{border-top-color:#52B788;}
+  .contact-card .contact-zone{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink-light);margin-bottom:8px;}
+  .contact-card h4{font-weight:700;font-size:14px;color:var(--green-deep);margin-bottom:12px;line-height:1.3;}
+  .contact-person{display:flex;flex-direction:column;gap:1px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px dashed var(--rule);}
+  .contact-person:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+  .contact-person .cp-name{font-weight:600;font-size:12.5px;color:var(--ink);}
+  .contact-person .cp-role{font-size:11px;color:var(--ink-light);margin-bottom:3px;}
+  .contact-person .cp-detail{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--green-mid);}
+  .contact-person .cp-detail a{color:var(--green-mid);text-decoration:none;}
+  .contact-person .cp-detail a:hover{text-decoration:underline;}
+
+  /* ── ADMIN PANEL ── */
+  #admin-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;overflow-y:auto;}
+  #admin-panel{background:var(--white);max-width:820px;margin:40px auto;border-radius:6px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.4);}
+  .admin-header{background:var(--green-deep);color:var(--white);padding:20px 28px;display:flex;align-items:center;justify-content:space-between;}
+  .admin-header h2{font-family:'Playfair Display',serif;font-size:20px;}
+  .admin-header .close-btn{background:none;border:1px solid rgba(255,255,255,0.3);color:var(--white);padding:6px 14px;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:10px;border-radius:2px;}
+  .admin-header .close-btn:hover{background:rgba(255,255,255,0.1);}
+  .admin-body{padding:28px;}
+  .admin-tabs{display:flex;gap:0;border-bottom:2px solid var(--rule);margin-bottom:24px;overflow-x:auto;}
+  .admin-tab{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:8px 16px;cursor:pointer;color:var(--ink-light);border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;}
+  .admin-tab.active{color:var(--green-deep);border-bottom-color:var(--green-deep);font-weight:500;}
+  .admin-section{display:none;}.admin-section.active{display:block;}
+  .form-group{margin-bottom:18px;}
+  .form-group label{display:block;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-light);margin-bottom:6px;}
+  .form-group input,.form-group textarea,.form-group select{width:100%;padding:10px 12px;border:1px solid var(--rule);border-radius:3px;font-family:'Inter',sans-serif;font-size:13px;color:var(--ink);background:var(--cream);transition:border 0.2s;}
+  .form-group input:focus,.form-group textarea:focus{outline:none;border-color:var(--green-mid);}
+  .form-group textarea{resize:vertical;min-height:80px;}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .btn-save{background:var(--green-deep);color:var(--amber);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;padding:10px 24px;border:none;cursor:pointer;border-radius:3px;width:100%;margin-top:8px;}
+  .btn-save:hover{background:var(--green-mid);}
+  .btn-add{background:none;border:1px dashed var(--green-mid);color:var(--green-mid);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;padding:8px 16px;cursor:pointer;border-radius:3px;margin-bottom:16px;}
+  .btn-add:hover{background:#f0faf4;}
+  .btn-remove{background:none;border:none;color:#999;cursor:pointer;font-size:12px;padding:4px 8px;float:right;}
+  .btn-remove:hover{color:var(--red-alert);}
+  .repeater-item{background:var(--cream);border:1px solid var(--rule);padding:14px;border-radius:3px;margin-bottom:12px;position:relative;}
+  .save-notice{background:#D1FAE5;color:#065F46;font-family:'IBM Plex Mono',monospace;font-size:11px;padding:10px 16px;border-radius:3px;margin-bottom:16px;display:none;}
+  #login-screen{padding:40px 28px;text-align:center;}
+  #login-screen h3{font-family:'Playfair Display',serif;font-size:20px;color:var(--green-deep);margin-bottom:8px;}
+  #login-screen p{font-size:13px;color:var(--ink-light);margin-bottom:24px;}
+  #login-screen input{width:100%;max-width:320px;padding:10px 14px;border:1px solid var(--rule);border-radius:3px;font-size:14px;text-align:center;letter-spacing:0.2em;margin-bottom:12px;}
+  #login-screen button{background:var(--green-deep);color:var(--amber);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:10px 28px;border:none;cursor:pointer;border-radius:3px;}
+  #login-err{color:var(--red-alert);font-size:12px;margin-top:6px;display:none;}
+
+  /* FOOTER */
+  .dash-footer{background:var(--green-deep);color:rgba(255,255,255,0.42);padding:14px 32px;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;display:flex;justify-content:space-between;align-items:center;}
+  .dash-footer .offline-badge{background:var(--green-accent);color:var(--green-deep);padding:3px 10px;border-radius:20px;font-weight:500;}
+  .admin-trigger{cursor:pointer;opacity:1;transition:all 0.2s;font-size:10px;background:rgba(233,196,106,0.15);border:1px solid rgba(233,196,106,0.4);color:var(--amber);padding:4px 12px;border-radius:3px;font-family:'IBM Plex Mono',monospace;letter-spacing:0.1em;}
+  .admin-trigger:hover{background:rgba(233,196,106,0.3);border-color:var(--amber);}
+
+  /* GALLERY */
+  .gallery-card{background:var(--white);border:1px solid var(--rule);border-radius:3px;overflow:hidden;}
+  .gallery-img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;background:var(--rule);}
+  .gallery-img-placeholder{width:100%;aspect-ratio:4/3;background:var(--green-deep);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.3);font-size:12px;font-family:"IBM Plex Mono",monospace;}
+  .gallery-caption{padding:10px 12px;}
+  .gallery-caption .gc-dept{font-family:"IBM Plex Mono",monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--green-mid);margin-bottom:3px;}
+  .gallery-caption .gc-label{font-size:12px;font-weight:600;color:var(--ink);line-height:1.3;}
+  .gallery-caption .gc-date{font-family:"IBM Plex Mono",monospace;font-size:9px;color:rgba(0,0,0,0.35);margin-top:3px;}
+  /* IMAGE ADMIN */
+  .img-preview{max-width:100%;max-height:120px;object-fit:cover;border-radius:3px;margin-top:8px;display:block;}
+  /* USER MANAGEMENT */
+  .user-card{background:var(--cream);border:1px solid var(--rule);padding:14px 16px;border-radius:3px;margin-bottom:12px;}
+  .user-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .user-card-name{font-weight:600;font-size:13px;color:var(--ink);}
+  .user-role-badge{font-family:'IBM Plex Mono',monospace;font-size:9px;padding:2px 8px;border-radius:20px;letter-spacing:0.08em;}
+  .badge-superadmin{background:var(--amber);color:var(--green-deep);}
+  .badge-contributor{background:#DBEAFE;color:#1D4E89;}
+  .access-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+  .access-chip{font-family:'IBM Plex Mono',monospace;font-size:9px;padding:3px 10px;background:var(--green-deep);color:var(--amber);border-radius:20px;}
+  .access-checkbox-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px;}
+  .access-checkbox-grid label{display:flex;align-items:center;gap:6px;font-size:11.5px;cursor:pointer;}
+  .access-checkbox-grid input[type=checkbox]{accent-color:var(--green-mid);width:14px;height:14px;}
+  .contributor-notice{background:#EDE9FE;border-left:3px solid #5C4A8A;padding:10px 14px;border-radius:2px;font-size:12px;color:#4C1D95;margin-bottom:16px;display:none;}
+  /* NOTIFICATION DOT ON NAV TABS */
+  .notif-dot{display:inline-block;width:7px;height:7px;background:var(--red-alert);border-radius:50%;margin-left:5px;vertical-align:middle;animation:pulse 1.6s ease-in-out infinite;}
+
+  /* MOBILE NAV */
+  @media(max-width:700px){
+    #mobile-menu-btn{display:flex !important;}
+    #main-nav{flex-wrap:wrap;max-height:42px;overflow:hidden;transition:max-height 0.3s ease;}
+    #main-nav.mobile-open{max-height:400px;}
+    #main-nav > div[style*="margin-left:auto"]{order:-1;width:100%;justify-content:flex-end;}
+    .nav-tab{font-size:10px;padding:8px 12px;}
+  }
+
+  /* PRINT STYLES */
+  @media print{
+    .masthead{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .alert-ticker,.nav-tabs,.dash-footer,#admin-overlay,.admin-trigger{display:none!important;}
+    .page{display:block!important;}
+    .layout-grid{grid-template-columns:1fr!important;}
+    .side-col{display:none;}
+    body{background:white;}
+    .hero-situation{background:var(--green-deep)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .alert-card,.dept-card,.field-report,.policy-doc,.media-card{break-inside:avoid;}
+  }
+
+  @media(max-width:900px){.layout-grid{grid-template-columns:1fr;}.alert-grid{grid-template-columns:1fr 1fr;}.contacts-grid{grid-template-columns:1fr;}}
+  @media(max-width:600px){.masthead,.main-col{padding-left:16px;padding-right:16px;}.alert-grid{grid-template-columns:1fr;}.contacts-grid{grid-template-columns:1fr;}.form-row{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<!-- MASTHEAD -->
+<div class="masthead">
+  <div class="masthead-top">
+    <div class="masthead-logo">
+      <div class="logo-emblem">NEMA</div>
+      <div>
+        <div class="logo-text-main">National Emergency Management Agency</div>
+        <div class="logo-text-full">Federal Republic of Nigeria</div>
+        <div class="logo-text-sub">National Situation &amp; Knowledge Dashboard · Internal Platform</div>
+      </div>
+    </div>
+    <div class="masthead-meta">
+      <div class="edition" id="meta-edition">Vol. 01 · Issue 06 · 2026</div>
+      <div id="live-date">—</div>
+      <div>Classification: INTERNAL USE ONLY</div>
+    </div>
+  </div>
+  <div class="dept-strip">
+    <div class="dept-pill"><span>●</span>Disaster Risk Reduction</div>
+    <div class="dept-pill"><span>●</span>Search &amp; Rescue</div>
+    <div class="dept-pill"><span>●</span>Relief &amp; Rehabilitation</div>
+    <div class="dept-pill"><span>●</span>Human Resource Management</div>
+    <div class="dept-pill"><span>●</span>Planning, Research &amp; Forecasting</div>
+    <div class="dept-pill"><span>●</span>Finance &amp; Accounts</div>
+    <div class="dept-pill"><span>●</span>Press Unit</div>
+    <div class="dept-pill"><span>●</span>Legal Unit</div>
+    <div class="dept-pill"><span>●</span>General Services</div>
+    <div class="dept-pill"><span>●</span>ICT</div>
+    <div class="dept-pill"><span>●</span>Air Wing</div>
+  </div>
+</div>
+
+<!-- TICKER -->
+<div class="alert-ticker">
+  <div class="ticker-label">⚠ ACTIVE ALERTS</div>
+  <div class="ticker-track"><div class="ticker-content" id="ticker-content">Loading…</div></div>
+</div>
+
+<!-- NAV -->
+<div class="nav-tabs" id="main-nav">
+  <div class="nav-tab active" data-page="situation">Situation Overview</div>
+  <div class="nav-tab" data-page="operations">Search &amp; Rescue</div>
+  <div class="nav-tab" data-page="recovery">Relief &amp; Rehabilitation</div>
+  <div class="nav-tab" data-page="preparedness">Preparedness &amp; DRR</div>
+  <div class="nav-tab" data-page="policy">Policy &amp; Institutional</div>
+  <div class="nav-tab" data-page="media">Press Unit</div>
+  <div class="nav-tab" data-page="contacts">Contacts Directory</div>
+  <div class="nav-tab" data-page="gallery">Gallery</div>
+  <div style="margin-left:auto;display:flex;align-items:center;gap:4px;padding-right:8px;">
+    <button id="notif-btn" onclick="openNotifPanel()" title="Notifications" style="background:none;border:none;color:rgba(255,255,255,0.6);cursor:pointer;font-size:16px;padding:8px 10px;position:relative;display:flex;align-items:center;">
+      🔔
+      <span id="notif-badge" style="display:none;position:absolute;top:6px;right:4px;background:var(--red-alert);color:white;border-radius:50%;width:16px;height:16px;font-size:9px;font-family:'IBM Plex Mono',monospace;align-items:center;justify-content:center;">
+        <span id="notif-count">0</span>
+      </span>
+    </button>
+    <button onclick="printDashboard()" title="Print this page" style="background:none;border:none;color:rgba(255,255,255,0.6);cursor:pointer;font-size:14px;padding:8px 10px;">🖨</button>
+    <button onclick="toggleMobileNav()" id="mobile-menu-btn" title="Menu" style="background:none;border:none;color:rgba(255,255,255,0.6);cursor:pointer;font-size:18px;padding:8px 10px;display:none;">☰</button>
+  </div>
+</div>
+
+<!-- ══════ PAGE: SITUATION ══════ -->
+<div id="page-situation" class="page active">
+  <div class="layout-grid">
+    <div class="main-col">
+      <div class="hero-situation" id="hero-block">
+        <div class="alert-badge"><span class="alert-dot"></span>NATIONAL SITUATION — ACTIVE</div>
+        <h2 id="hero-title">Flood Season 2026: Elevated Risk Nationwide. Multi-Department Response Activated.</h2>
+        <p id="hero-body">NIHSA seasonal flood outlook confirms above-normal rainfall expected Q3 2026. NEMA has activated coordinated response protocols across Operations, DRR, and Relief &amp; Rehabilitation departments. All six zonal offices are engaged. SEMA coordination matrices are in force across 34 of 36 states.</p>
+        <div class="hero-meta" id="hero-stats">
+          <span><div class="label">STATES ON WATCH</div>18 of 36</span>
+          <span><div class="label">SEMA ACTIVATED</div>34 / 36</span>
+          <span><div class="label">ACTIVE INCIDENTS</div>6</span>
+          <span><div class="label">DISPLACED PERSONS</div>62,950</span>
+          <span><div class="label">DEPTS ENGAGED</div>All</span>
+        </div>
+      </div>
+
+      <div class="section-eyebrow">National Hazard Status — Current Period</div>
+      <div class="alert-grid" id="hazard-cards"><!-- rendered by JS --></div>
+
+      <div class="section-eyebrow" style="margin-top:8px;">Departmental Activity Highlights</div>
+      <div id="dept-highlights"><!-- rendered by JS --></div>
+    </div>
+    <div class="side-col">
+      <div class="sidebar-widget">
+        <div class="widget-title">National Risk Index <span>2026</span></div>
+        <div class="risk-item"><div class="zone-name">North-Central</div><div class="risk-bar-wrap"><div class="risk-bar high" style="width:87%"></div></div><div class="risk-val">87</div></div>
+        <div class="risk-item"><div class="zone-name">North-East</div><div class="risk-bar-wrap"><div class="risk-bar med" style="width:74%"></div></div><div class="risk-val">74</div></div>
+        <div class="risk-item"><div class="zone-name">North-West</div><div class="risk-bar-wrap"><div class="risk-bar mod" style="width:62%"></div></div><div class="risk-val">62</div></div>
+        <div class="risk-item"><div class="zone-name">South-South</div><div class="risk-bar-wrap"><div class="risk-bar med" style="width:70%"></div></div><div class="risk-val">70</div></div>
+        <div class="risk-item"><div class="zone-name">South-East</div><div class="risk-bar-wrap"><div class="risk-bar mod" style="width:55%"></div></div><div class="risk-val">55</div></div>
+        <div class="risk-item"><div class="zone-name">South-West</div><div class="risk-bar-wrap"><div class="risk-bar low" style="width:38%"></div></div><div class="risk-val">38</div></div>
+      </div>
+      <div class="sidebar-widget">
+        <div class="widget-title">Key National Statistics</div>
+        <div class="stat-grid" id="key-stats"><!-- rendered by JS --></div>
+      </div>
+      <div class="sidebar-widget">
+        <div class="widget-title">Upcoming — All Depts</div>
+        <div id="events-list"><!-- rendered by JS --></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ PAGE: OPERATIONS ══════ -->
+<div id="page-operations" class="page">
+  <div class="layout-grid">
+    <div class="main-col">
+      <div class="section-eyebrow blue">Search &amp; Rescue Department</div>
+      <div class="section-title">Active Operations — <span id="ops-period">June 2026</span></div>
+      <div id="ops-reports"><!-- rendered by JS --></div>
+    </div>
+    <div class="side-col">
+      <div class="sidebar-widget">
+        <div class="widget-title">Operations Summary</div>
+        <div class="stat-grid">
+          <div class="stat-box"><div class="num">5</div><div class="lbl">Active Operations</div></div>
+          <div class="stat-box"><div class="num">4,280</div><div class="lbl">Persons in IDP Sites</div></div>
+          <div class="stat-box"><div class="num">6,500</div><div class="lbl">HH Supported</div></div>
+          <div class="stat-box"><div class="num">412</div><div class="lbl">Structures Damaged</div></div>
+        </div>
+      </div>
+      <div class="sidebar-widget">
+        <div class="widget-title">Inter-Agency Partners</div>
+        <div style="font-size:11.5px;color:var(--ink-light);line-height:2.1;">
+          <div>▸ NIHSA — Flood Forecasting</div><div>▸ NiMet — Weather Advisories</div>
+          <div>▸ NCDC — Disease Surveillance</div><div>▸ NPF — Security &amp; Crowd Management</div>
+          <div>▸ FRSC — Road Emergency Response</div><div>▸ NAFDAC — Drug/Relief Verification</div>
+          <div>▸ WHO / UNICEF / WFP</div><div>▸ OCHA Nigeria</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ PAGE: RECOVERY ══════ -->
+<div id="page-recovery" class="page">
+  <div class="layout-grid">
+    <div class="main-col">
+      <div class="section-eyebrow purple">Disaster Relief &amp; Rehabilitation Department</div>
+      <div class="section-title">Relief Distribution &amp; Rehabilitation Programmes</div>
+      <div id="recovery-cards"></div>
+    </div>
+    <div class="side-col">
+      <div class="sidebar-widget">
+        <div class="widget-title">Relief &amp; Rehabilitation Summary</div>
+        <div class="stat-grid" id="recovery-stats"></div>
+      </div>
+      <div class="sidebar-widget">
+        <div class="widget-title">Stock by Zone</div>
+        <div id="recovery-stock"></div>
+      </div>
+      <div class="sidebar-widget">
+        <div class="widget-title">Recovery Milestones</div>
+        <div id="recovery-milestones"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ PAGE: PREPAREDNESS ══════ -->
+<div id="page-preparedness" class="page">
+  <div class="layout-grid">
+    <div class="main-col">
+      <div class="section-eyebrow">Preparedness, Training &amp; Disaster Risk Reduction</div>
+      <div class="section-title">Programmes &amp; Capacity Building</div>
+      <div id="preparedness-cards"></div>
+    </div>
+    <div class="side-col">
+      <div class="sidebar-widget">
+        <div class="widget-title">Preparedness &amp; DRR Stats</div>
+        <div class="stat-grid" id="preparedness-stats"></div>
+      </div>
+      <div class="sidebar-widget">
+        <div class="widget-title">Training Calendar</div>
+        <div id="preparedness-calendar"></div>
+      </div>
+      <div class="sidebar-widget">
+        <div class="widget-title">SEMA Capacity Indicators</div>
+        <div id="preparedness-capacity"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ PAGE: POLICY ══════ -->
+<div id="page-policy" class="page">
+  <div class="layout-grid">
+    <div class="main-col">
+      <div class="section-eyebrow">Policy, Legal &amp; Institutional</div>
+      <div class="section-title">Policy Updates &amp; Regulatory Instruments</div>
+      <div id="policy-docs"></div>
+    </div>
+    <div class="side-col">
+      <div class="sidebar-widget">
+        <div class="widget-title">Policy Pipeline</div>
+        <div id="policy-pipeline"></div>
+      </div>
+      <div class="sidebar-widget">
+        <div class="widget-title">Regulatory Anchors</div>
+        <div style="font-size:11.5px;color:var(--ink-light);line-height:2.1;">
+          <div>▸ NEMA Act Cap N34 LFN 2004</div><div>▸ Sendai Framework 2015–2030</div>
+          <div>▸ Nigeria DRR Strategy 2030</div><div>▸ NCCRP 2021–2030</div>
+          <div>▸ ECOWAS DRR Policy 2020</div><div>▸ SDG Goals 1, 11, 13</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ PAGE: MEDIA ══════ -->
+<div id="page-media" class="page">
+  <div class="layout-grid">
+    <div class="main-col">
+      <div class="section-eyebrow">Press Unit</div>
+      <div class="section-title">Communications &amp; Public Engagement</div>
+      <div id="media-cards"></div>
+    </div>
+    <div class="side-col">
+      <div class="sidebar-widget">
+        <div class="widget-title">Media Events</div>
+        <div id="media-events"></div>
+      </div>
+      <div class="sidebar-widget">
+        <div class="widget-title">NEMA Emergency Contacts</div>
+        <div id="media-hotlines" style="font-size:11.5px;color:var(--ink-light);line-height:2.2;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ PAGE: CONTACTS ══════ -->
+<div id="page-contacts" class="page">
+  <div class="layout-grid">
+    <div class="main-col">
+      <div class="section-eyebrow">Staff &amp; Institutional Directory</div>
+      <div class="section-title">NEMA Headquarters &amp; Zonal Offices</div>
+      <div class="section-eyebrow" style="margin-bottom:14px;">HQ Departments — Abuja</div>
+      <div class="contacts-grid" id="hq-contacts"><!-- rendered by JS --></div>
+      <div class="section-eyebrow" style="margin-bottom:14px;">Zonal Offices</div>
+      <div class="contacts-grid" id="zone-contacts"><!-- rendered by JS --></div>
+    </div>
+    <div class="side-col">
+      <div class="sidebar-widget">
+        <div class="widget-title">Emergency Hotlines</div>
+        <div id="hotlines-display" style="font-size:12px;color:var(--ink-light);line-height:2.4;"></div>
+      </div>
+      <div class="sidebar-widget">
+        <div class="widget-title">SEMA Directory</div>
+        <p id="sema-dir-display" style="font-size:11.5px;color:var(--ink-light);line-height:1.7;"></p>
+      </div>
+      <div class="sidebar-widget">
+        <div class="widget-title">Directory Note</div>
+        <p id="dir-note-display" style="font-size:11.5px;color:var(--ink-light);line-height:1.7;"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ PAGE: GALLERY ══════ -->
+<div id="page-gallery" class="page">
+  <div class="layout-grid">
+    <div class="main-col">
+      <div class="section-eyebrow">Photo & Media Gallery</div>
+      <div class="section-title">Images from the Field &amp; Institution</div>
+      <div id="gallery-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;"></div>
+    </div>
+    <div class="side-col">
+      <div class="sidebar-widget">
+        <div class="widget-title">Gallery Info</div>
+        <p style="font-size:11.5px;color:var(--ink-light);line-height:1.7;">Images are added and managed through the Admin Panel. Each image can have a caption and department label. Supported formats: JPG, PNG, GIF, WebP.</p>
+      </div>
+      <div class="sidebar-widget">
+        <div class="widget-title">Image Count</div>
+        <div id="gallery-count" style="font-family:'Playfair Display',serif;font-size:36px;font-weight:900;color:var(--green-deep);"></div>
+        <div style="font-size:11px;color:var(--ink-light);">photos in library</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="dash-footer">
+  <div>National Emergency Management Agency (NEMA) · Federal Republic of Nigeria · INTERNAL USE ONLY</div>
+  <div class="offline-badge">● OFFLINE CAPABLE</div>
+  <div><span class="admin-trigger" onclick="openAdmin()" title="Click to open Admin Panel (or press A three times quickly)">⚙ ADMIN PANEL</span> &nbsp;·&nbsp; Dashboard Issue 06 · v3.0</div>
+</div>
+
+<!-- ══════ ADMIN OVERLAY ══════ -->
+<div id="admin-overlay">
+  <div id="admin-panel">
+    <div class="admin-header">
+      <h2>Dashboard Administrator Panel</h2>
+      <button class="close-btn" onclick="closeAdmin()">✕ CLOSE</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="login-screen">
+      <h3>Dashboard Access</h3>
+      <p>Sign in with your assigned username and password.</p>
+      <input type="text" id="admin-user" placeholder="Username" autocomplete="off" style="margin-bottom:10px;" onkeydown="if(event.key==='Enter')checkPw()">
+      <br>
+      <input type="password" id="admin-pw" placeholder="Password" onkeydown="if(event.key==='Enter')checkPw()">
+      <br><button onclick="checkPw()" style="margin-top:12px;">SIGN IN</button>
+      <div id="login-err">Incorrect username or password.</div>
+    </div>
+
+    <!-- ADMIN BODY (hidden until login) -->
+    <div id="admin-body-inner" style="display:none;">
+      <div class="admin-body">
+        <div style="background:var(--green-deep);color:var(--amber);font-family:'IBM Plex Mono',monospace;font-size:10px;padding:8px 16px;border-radius:3px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;">
+          <span id="role-badge">Role: —</span>
+          <span id="session-user" style="color:rgba(255,255,255,0.6);"></span>
+        </div>
+        <div class="contributor-notice" id="contributor-notice"></div>
+        <div class="save-notice" id="save-notice">✓ Content saved successfully. Reload the page to see changes.</div>
+        <div class="admin-tabs">
+          <div class="admin-tab active" data-atab="ticker">Alert Ticker</div>
+          <div class="admin-tab" data-atab="hero">Situation Hero</div>
+          <div class="admin-tab" data-atab="hazards">Hazard Cards</div>
+          <div class="admin-tab" data-atab="highlights">Dept Highlights</div>
+          <div class="admin-tab" data-atab="stats">Key Stats</div>
+          <div class="admin-tab" data-atab="events">Events</div>
+          <div class="admin-tab" data-atab="fieldreports">Field Reports</div>
+          <div class="admin-tab" data-atab="hqcontacts">HQ Contacts</div>
+          <div class="admin-tab" data-atab="zonecontacts">Zone Contacts</div>
+          <div class="admin-tab" data-atab="recovery">Relief &amp; Rehab</div>
+          <div class="admin-tab" data-atab="preparedness">Preparedness</div>
+          <div class="admin-tab" data-atab="policy">Policy</div>
+          <div class="admin-tab" data-atab="media">Press Unit</div>
+          <div class="admin-tab" data-atab="edition">Vol / Issue</div>
+          <div class="admin-tab" data-atab="hotlines">Hotlines</div>
+          <div class="admin-tab" data-atab="semadirectory">SEMA Directory</div>
+          <div class="admin-tab" data-atab="gallery">Gallery</div>
+          <div class="admin-tab superadmin-only" data-atab="users" style="display:none;">Manage Users</div>
+          <div class="admin-tab" data-atab="password">Password</div>
+        </div>
+
+        <!-- TICKER -->
+        <div class="admin-section active" id="asec-ticker">
+          <div class="form-group">
+            <label>Alert Ticker Text (separate alerts with &nbsp;·&nbsp;)</label>
+            <textarea id="f-ticker" rows="4"></textarea>
+          </div>
+          <button class="btn-save" onclick="saveSection('ticker')">SAVE TICKER</button>
+        </div>
+
+        <!-- HERO -->
+        <div class="admin-section" id="asec-hero">
+          <div class="form-group"><label>Headline</label><input type="text" id="f-hero-title"></div>
+          <div class="form-group"><label>Body Text</label><textarea id="f-hero-body" rows="4"></textarea></div>
+          <div class="form-group"><label>Stat 1 Label</label><input type="text" id="f-hs1l"></div>
+          <div class="form-group"><label>Stat 1 Value</label><input type="text" id="f-hs1v"></div>
+          <div class="form-row">
+            <div class="form-group"><label>Stat 2 Label</label><input type="text" id="f-hs2l"></div>
+            <div class="form-group"><label>Stat 2 Value</label><input type="text" id="f-hs2v"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Stat 3 Label</label><input type="text" id="f-hs3l"></div>
+            <div class="form-group"><label>Stat 3 Value</label><input type="text" id="f-hs3v"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Stat 4 Label</label><input type="text" id="f-hs4l"></div>
+            <div class="form-group"><label>Stat 4 Value</label><input type="text" id="f-hs4v"></div>
+          </div>
+          <button class="btn-save" onclick="saveSection('hero')">SAVE HERO</button>
+        </div>
+
+        <!-- HAZARD CARDS -->
+        <div class="admin-section" id="asec-hazards">
+          <button class="btn-add" onclick="addHazardRow()">+ ADD HAZARD CARD</button>
+          <div id="hazard-repeater"></div>
+          <button class="btn-save" onclick="saveSection('hazards')">SAVE HAZARD CARDS</button>
+        </div>
+
+        <!-- DEPT HIGHLIGHTS -->
+        <div class="admin-section" id="asec-highlights">
+          <button class="btn-add" onclick="addHighlightRow()">+ ADD HIGHLIGHT</button>
+          <div id="highlight-repeater"></div>
+          <button class="btn-save" onclick="saveSection('highlights')">SAVE HIGHLIGHTS</button>
+        </div>
+
+        <!-- KEY STATS -->
+        <div class="admin-section" id="asec-stats">
+          <p style="font-size:12px;color:var(--ink-light);margin-bottom:16px;">Four stat boxes in the Situation Overview sidebar.</p>
+          <div id="stats-repeater"></div>
+          <button class="btn-save" onclick="saveSection('stats')">SAVE STATS</button>
+        </div>
+
+        <!-- EVENTS -->
+        <div class="admin-section" id="asec-events">
+          <button class="btn-add" onclick="addEventRow()">+ ADD EVENT</button>
+          <div id="events-repeater"></div>
+          <button class="btn-save" onclick="saveSection('events')">SAVE EVENTS</button>
+        </div>
+
+        <!-- FIELD REPORTS -->
+        <div class="admin-section" id="asec-fieldreports">
+          <button class="btn-add" onclick="addReportRow()">+ ADD FIELD REPORT</button>
+          <div id="report-repeater"></div>
+          <button class="btn-save" onclick="saveSection('fieldreports')">SAVE FIELD REPORTS</button>
+        </div>
+
+        <!-- HQ CONTACTS -->
+        <div class="admin-section" id="asec-hqcontacts">
+          <button class="btn-add" onclick="addHQContact()">+ ADD HQ DEPARTMENT</button>
+          <div id="hqcontacts-repeater"></div>
+          <button class="btn-save" onclick="saveSection('hqcontacts')">SAVE HQ CONTACTS</button>
+        </div>
+
+        <!-- ZONE CONTACTS -->
+        <div class="admin-section" id="asec-zonecontacts">
+          <button class="btn-add" onclick="addZoneContact()">+ ADD ZONAL OFFICE</button>
+          <div id="zonecontacts-repeater"></div>
+          <button class="btn-save" onclick="saveSection('zonecontacts')">SAVE ZONE CONTACTS</button>
+        </div>
+
+        <!-- PASSWORD -->
+        <!-- EDITION -->
+        <div class="admin-section" id="asec-edition">
+          <p style="font-size:12px;color:var(--ink-light);margin-bottom:16px;">Updates the Volume, Issue, and Year shown in the masthead top-right.</p>
+          <div class="form-row">
+            <div class="form-group"><label>Volume Number</label><input type="text" id="f-vol" placeholder="e.g. 01"></div>
+            <div class="form-group"><label>Issue Number</label><input type="text" id="f-issue" placeholder="e.g. 06"></div>
+          </div>
+          <div class="form-group"><label>Year</label><input type="text" id="f-year" placeholder="e.g. 2026"></div>
+          <button class="btn-save" onclick="saveSection('edition')">SAVE EDITION</button>
+        </div>
+
+        <!-- HOTLINES -->
+        <div class="admin-section" id="asec-hotlines">
+          <button class="btn-add" onclick="addHotlineRow()">+ ADD HOTLINE</button>
+          <div id="hotlines-repeater"></div>
+          <button class="btn-save" onclick="saveSection('hotlines')">SAVE HOTLINES</button>
+        </div>
+
+        <!-- SEMA DIRECTORY -->
+        <div class="admin-section" id="asec-semadirectory">
+          <div class="form-group">
+            <label>SEMA Directory Text</label>
+            <textarea id="f-semadirectory" rows="5"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Directory Note</label>
+            <textarea id="f-directorynote" rows="5"></textarea>
+          </div>
+          <button class="btn-save" onclick="saveSection('semadirectory')">SAVE DIRECTORY TEXT</button>
+        </div>
+
+        <!-- GALLERY -->
+        <div class="admin-section" id="asec-gallery">
+          <p style="font-size:12px;color:var(--ink-light);margin-bottom:12px;">Upload images using the file picker. Images are stored as base64 in the browser — best for smaller images (under 1MB each).</p>
+          <button class="btn-add" onclick="addGalleryRow()">+ ADD IMAGE</button>
+          <div id="gallery-repeater"></div>
+          <button class="btn-save" onclick="saveSection('gallery')">SAVE GALLERY</button>
+        </div>
+
+        <!-- RECOVERY -->
+        <div class="admin-section" id="asec-recovery">
+          <p style="font-size:12px;color:var(--ink-light);margin-bottom:16px;">Edit Relief &amp; Rehabilitation programme cards, summary stats, stock levels by zone, and milestones.</p>
+          <div class="form-group"><label>Programme Cards</label></div>
+          <button class="btn-add" onclick="addDeptCardRow('recovery-cards-rep','recovery')">+ ADD CARD</button>
+          <div id="recovery-cards-rep"></div>
+          <hr style="border:none;border-top:1px solid var(--rule);margin:16px 0;">
+          <div class="form-group"><label>Summary Stats (4 boxes)</label></div>
+          <div id="recovery-stats-rep"></div>
+          <hr style="border:none;border-top:1px solid var(--rule);margin:16px 0;">
+          <div class="form-group"><label>Stock by Zone (6 zones)</label></div>
+          <div id="recovery-stock-rep"></div>
+          <hr style="border:none;border-top:1px solid var(--rule);margin:16px 0;">
+          <div class="form-group"><label>Milestones / Events</label></div>
+          <button class="btn-add" onclick="addEventToRep('recovery-milestones-rep')">+ ADD MILESTONE</button>
+          <div id="recovery-milestones-rep"></div>
+          <button class="btn-save" onclick="saveDynPage('recovery')">SAVE RELIEF &amp; REHABILITATION</button>
+        </div>
+
+        <!-- PREPAREDNESS -->
+        <div class="admin-section" id="asec-preparedness">
+          <p style="font-size:12px;color:var(--ink-light);margin-bottom:16px;">Edit Preparedness &amp; DRR programme cards, stats, training calendar, and SEMA capacity indicators.</p>
+          <div class="form-group"><label>Programme Cards</label></div>
+          <button class="btn-add" onclick="addDeptCardRow('prep-cards-rep','preparedness')">+ ADD CARD</button>
+          <div id="prep-cards-rep"></div>
+          <hr style="border:none;border-top:1px solid var(--rule);margin:16px 0;">
+          <div class="form-group"><label>Stats (4 boxes)</label></div>
+          <div id="prep-stats-rep"></div>
+          <hr style="border:none;border-top:1px solid var(--rule);margin:16px 0;">
+          <div class="form-group"><label>Training Calendar</label></div>
+          <button class="btn-add" onclick="addEventToRep('prep-cal-rep')">+ ADD EVENT</button>
+          <div id="prep-cal-rep"></div>
+          <hr style="border:none;border-top:1px solid var(--rule);margin:16px 0;">
+          <div class="form-group"><label>SEMA Capacity Indicators (label + %)</label></div>
+          <div id="prep-cap-rep"></div>
+          <button class="btn-save" onclick="saveDynPage('preparedness')">SAVE PREPAREDNESS</button>
+        </div>
+
+        <!-- POLICY -->
+        <div class="admin-section" id="asec-policy">
+          <p style="font-size:12px;color:var(--ink-light);margin-bottom:16px;">Edit policy documents and the pipeline tracker.</p>
+          <button class="btn-add" onclick="addPolicyDocRow('policy-docs-rep')">+ ADD POLICY DOCUMENT</button>
+          <div id="policy-docs-rep"></div>
+          <hr style="border:none;border-top:1px solid var(--rule);margin:16px 0;">
+          <div class="form-group"><label>Policy Pipeline</label></div>
+          <button class="btn-add" onclick="addPipelineRow('policy-pipe-rep')">+ ADD PIPELINE ITEM</button>
+          <div id="policy-pipe-rep"></div>
+          <button class="btn-save" onclick="saveDynPage('policy')">SAVE POLICY</button>
+        </div>
+
+        <!-- MEDIA -->
+        <div class="admin-section" id="asec-media">
+          <p style="font-size:12px;color:var(--ink-light);margin-bottom:16px;">Edit Press Unit communications cards and media events.</p>
+          <button class="btn-add" onclick="addMediaCardRow('media-cards-rep')">+ ADD MEDIA CARD</button>
+          <div id="media-cards-rep"></div>
+          <hr style="border:none;border-top:1px solid var(--rule);margin:16px 0;">
+          <div class="form-group"><label>Media Events</label></div>
+          <button class="btn-add" onclick="addEventToRep('media-events-rep')">+ ADD EVENT</button>
+          <div id="media-events-rep"></div>
+          <button class="btn-save" onclick="saveDynPage('media')">SAVE PRESS UNIT</button>
+        </div>
+
+        <!-- MANAGE USERS (Super Admin only) -->
+        <div class="admin-section" id="asec-users">
+          <div style="background:#FEF3C7;border:1px solid #F59E0B;padding:10px 14px;border-radius:3px;margin-bottom:16px;font-size:12px;color:#78350F;">
+            <strong>Super Admin only.</strong> Contributors can only edit sections you assign to them. They cannot manage users or change the Super Admin password.
+          </div>
+          <button class="btn-add" onclick="addUserRow()">+ ADD CONTRIBUTOR</button>
+          <div id="users-list"></div>
+          <button class="btn-save" onclick="saveUsers()">SAVE ALL USERS</button>
+        </div>
+
+        <div class="admin-section" id="asec-password">
+          <div class="form-group"><label>New Password</label><input type="password" id="f-pw1" placeholder="Enter new password"></div>
+          <div class="form-group"><label>Confirm Password</label><input type="password" id="f-pw2" placeholder="Confirm new password"></div>
+          <div id="pw-msg" style="font-size:12px;margin-bottom:10px;display:none;"></div>
+          <button class="btn-save" onclick="changePassword()">CHANGE PASSWORD</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────
+// DEFAULTS
+// ─────────────────────────────────────────
+const DEFAULTS = {
+  ticker: "FLOOD WATCH: Niger Basin rising — Kogi, Anambra, Delta on alert \u00a0·\u00a0 CHOLERA: Elevated cases in Borno & Adamawa — Operations activated \u00a0·\u00a0 WINDSTORM: Katsina — 3 LGAs affected, 412 structures damaged \u00a0·\u00a0 RECOVERY: Phase II disbursements ongoing — 2022 flood-affected LGAs \u00a0·\u00a0 POLICY: NEMA GESI Policy for DRM — revised draft in circulation \u00a0·\u00a0 VCA PILOT: North-West Zone launch scheduled July 2026 \u00a0·\u00a0",
+
+  hero: {
+    title: "Flood Season 2026: Elevated Risk Nationwide. Multi-Department Response Activated.",
+    body: "NIHSA seasonal flood outlook confirms above-normal rainfall expected Q3 2026. NEMA has activated coordinated response protocols across Operations, DRR, and Relief & Recovery departments. All six zonal offices are engaged. SEMA coordination matrices are in force across 34 of 36 states.",
+    stats: [
+      {label:"STATES ON WATCH", value:"18 of 36"},
+      {label:"SEMA ACTIVATED", value:"34 / 36"},
+      {label:"ACTIVE INCIDENTS", value:"6"},
+      {label:"DISPLACED PERSONS", value:"62,950"}
+    ]
+  },
+
+  hazards: [
+    {zone:"North-Central · Operations", title:"River Niger Basin Flooding", body:"Kogi and Niger States under active flood watch. 1,840 persons in NEMA-supported IDP sites. Relief pre-positioned at Lokoja and Baro.", severity:"critical", statusLabel:"CRITICAL", date:"14 Jun 2026"},
+    {zone:"North-East · Operations", title:"Cholera Outbreak — Borno", body:"Case surge in Maiduguri and Konduga. NEMA operations team supporting SEMA/WHO joint response. ORS and water treatment distributed.", severity:"warning", statusLabel:"WARNING", date:"12 Jun 2026"},
+    {zone:"North-West · Operations", title:"Windstorm — Katsina State", body:"412 structures damaged across 3 LGAs. NEMA relief request lodged with HQ. Needs assessment completed by Katsina SEMA.", severity:"watch", statusLabel:"WATCH", date:"11 Jun 2026"},
+    {zone:"South-South · Recovery", title:"Coastal Flooding — Delta, Bayelsa", body:"1,200 persons evacuated. Temporary shelter sites active in Yenagoa. Recovery dept coordinating livelihood assessment for Week 3.", severity:"warning", statusLabel:"WARNING", date:"10 Jun 2026"},
+    {zone:"South-East · DRR", title:"Erosion Monitoring — Anambra", body:"4 active gully sites in Awka South and Nnewi. No displacement recorded. Structural assessment scheduled for Q3 2026.", severity:"watch", statusLabel:"MONITOR", date:"8 Jun 2026"},
+    {zone:"South-West · Preparedness", title:"Pre-Season Readiness", body:"No active emergency. LEMC meetings held in all 6 SW states. Household sensitisation ongoing via NYSC CDS reaching 14,000 households.", severity:"normal", statusLabel:"ALL CLEAR", date:"9 Jun 2026"}
+  ],
+
+  highlights: [
+    {dept:"Operations & Response", deptClass:"ops", title:"Inter-Agency Flood Coordination — North-Central", body:"NEMA Operations coordinating with NIHSA, NiMet, and NAFDAC on flood season resource logistics. Three evacuation corridors established in Kogi. Pre-positioned NFI stock covers estimated 8,000 households across high-risk zones.", meta:"📋 Ops Dept · 🗓 Jun 2026 · ✅ Active"},
+    {dept:"Disaster Relief & Recovery", deptClass:"rec", title:"Phase II Recovery Disbursements — 2022 Flood LGAs", body:"Recovery cash transfers and livelihood support disbursements ongoing in 14 LGAs across Benue, Kogi, and Anambra. 6,800 households reached in May. Monitoring via SEMA focal points and third-party verification.", meta:"📋 Recovery Dept · 🗓 May–Jun 2026 · ✅ Ongoing"},
+    {dept:"Disaster Risk Reduction", deptClass:"drr", title:"National VCA Pilot — North-West Zone Launch Preparation", body:"The National VCA pilot is on track for July 2026 launch in the North-West Zone. State-level stakeholder briefings completed. Methodology finalised and budget approved.", meta:"📋 DRR Dept · 🗓 Jul 2026 launch · ⏳ Pre-launch"},
+    {dept:"Press Unit & Media", deptClass:"comms", title:"Flood Season Public Awareness Campaign — Phase 1 Live", body:"NEMA flood season awareness campaign active across national radio, NTA, and social media. Key messages on early warning, evacuation routes, and emergency contacts. DG press briefing scheduled 20 June 2026.", meta:"📋 Press Unit · 🗓 Jun 2026 · ✅ Live"}
+  ],
+
+  stats: [
+    {num:"18", lbl:"States on Active Watch"},
+    {num:"6", lbl:"Active Incidents"},
+    {num:"62,950", lbl:"Persons Displaced YTD"},
+    {num:"34", lbl:"SEMA Activated"}
+  ],
+
+  events: [
+    {day:"18", mon:"Jun", title:"Inter-Agency Flood Response Review", sub:"NEMA HQ · Operations"},
+    {day:"20", mon:"Jun", title:"DG Press Briefing — Flood Season", sub:"NEMA HQ · Press Unit"},
+    {day:"25", mon:"Jun", title:"SEMA Quarterly Coordination Call", sub:"Virtual · DRR facilitation"},
+    {day:"03", mon:"Jul", title:"VCA Pilot Launch — North-West Zone", sub:"Kaduna · DRR Dept"},
+    {day:"15", mon:"Jul", title:"SAFE STEPS School Programme", sub:"10 FCT Schools · Preparedness"}
+  ],
+
+  fieldreports: [
+    {zoneCode:"NC\nZONE", title:"Flood Response — Kogi & Niger States", body:"NEMA Operations has pre-positioned relief materials at Lokoja and Baro distribution hubs. Three evacuation corridors are active in Ibaji LGA. As of 14 June, 1,840 persons are in NEMA-supported IDP sites. River monitoring ongoing at 5 gauging stations.", location:"Kogi, Niger States", date:"14 Jun 2026", officer:"NC Zonal Coordinator"},
+    {zoneCode:"NE\nZONE", title:"Health Emergency — Cholera Response, Borno State", body:"NEMA NE zonal office activated IDSR coordination protocol. ORS kits and water purification tablets distributed to 6,500 households. Case fatality rate declining from 3.2% to 1.4% over 10 days. WASH teams operational with WHO and UNICEF.", location:"Borno State", date:"12 Jun 2026", officer:"Health Emergency FP, NE"},
+    {zoneCode:"NW\nZONE", title:"Windstorm Damage Assessment — Katsina", body:"Rapid assessment completed across Daura, Kankia, and Mashi LGAs. 412 structures fully or partially damaged. 3 schools and 2 PHCs with roof failures. No fatalities. NEMA NW relief request submitted to HQ.", location:"Katsina State", date:"11 Jun 2026", officer:"NW Response Officer"},
+    {zoneCode:"SS\nZONE", title:"Coastal Displacement — Delta & Bayelsa", body:"Tidal surges displaced 1,200 persons. Evacuation completed through community boat networks. Three shelter sites active in Yenagoa. Dewatering pumps deployed in three communities.", location:"Delta, Bayelsa", date:"10 Jun 2026", officer:"SS Zonal Coordinator"},
+    {zoneCode:"SW\nZONE", title:"Pre-Season Readiness — South-West", body:"No active emergency. LEMC meetings held across all 6 SW states. Surge capacity rosters updated and shared with HQ Ops. NYSC CDS volunteers conducting household preparedness sensitisation — 14,000 households reached.", location:"South-West Zone", date:"9 Jun 2026", officer:"SW Monitoring Officer"}
+  ],
+
+  edition: {vol:"01", issue:"06", year:"2026"},
+
+  recovery: {
+    cards: [
+      {dept:"Recovery Programme", deptClass:"rec", title:"Phase II Recovery — 2022 Flood-Affected LGAs", body:"Cash transfers and livelihood restoration support disbursements are ongoing across 14 LGAs in Benue, Kogi, and Anambra. As of May 2026, 6,800 households have been reached. Third-party M&E verification in progress.", meta:"📋 Recovery Dept · 🗓 Ongoing · 🎯 14 LGAs · 3 States"},
+      {dept:"Relief Distribution", deptClass:"rec", title:"2026 Flood Season — Pre-Positioned Relief Stock", body:"NEMA has pre-positioned NFI packages at strategic warehouses across all 6 zones. Current stock covers an estimated 22,000 households including food rations, tarpaulins, mosquito nets, hygiene kits, and water purification equipment.", meta:"📋 Relief Dept / Logistics · 🗓 Jun 2026 · 📦 22,000 HH covered"},
+      {dept:"Recovery Assessment", deptClass:"rec", title:"Post-Flood Livelihood Assessment — South-South Zone", body:"A structured post-flood livelihood assessment is scheduled for the third week of June 2026 in Warri South-West and Ekeremor LGAs, profiling agricultural losses, fishing equipment damage, and small business disruption among displaced persons.", meta:"📋 Recovery Dept · 🗓 Week 3, Jun 2026 · 📍 Delta, Bayelsa"}
+    ],
+    stats: [
+      {num:"22,000", lbl:"HH Relief Coverage"},
+      {num:"14", lbl:"LGAs in Recovery"},
+      {num:"₦1.38b", lbl:"Cash Transferred"},
+      {num:"6", lbl:"Active Programmes"}
+    ],
+    stock: [
+      {zone:"North-Central", pct:90, val:"9,200"},
+      {zone:"North-East",    pct:70, val:"7,100"},
+      {zone:"North-West",    pct:55, val:"5,600"},
+      {zone:"South-South",  pct:60, val:"6,100"},
+      {zone:"South-East",   pct:38, val:"3,900"},
+      {zone:"South-West",   pct:30, val:"3,000"}
+    ],
+    milestones: [
+      {day:"20", mon:"Jun", title:"Phase II M&E Verification Report Due", sub:"Benue, Kogi, Anambra"},
+      {day:"30", mon:"Jun", title:"Stock Replenishment — 8,000 HH Kits", sub:"All zones · Procurement"},
+      {day:"15", mon:"Jul", title:"SS Zone Livelihood Assessment Report", sub:"Delta & Bayelsa"}
+    ]
+  },
+
+  preparedness: {
+    cards: [
+      {dept:"DRR — Flagship Programme", deptClass:"drr", title:"National Vulnerability & Capacity Assessment (VCA) — Phase 1", body:"Addresses a 16-year gap in systematic national disaster risk profiling. Phase 1 covers the North-West Zone using the Kaduna Hazard Mapping Model. State-level briefings completed. Launch scheduled July 2026.", meta:"📋 DRR Dept · 🗓 Jul 2026 · 🎯 North-West Pilot"},
+      {dept:"Preparedness — School DRR", deptClass:"drr", title:"SAFE STEPS — FCT School-Based DRR Programme", body:"Structured 1-hour DRR programme for primary school children aged 4–10 across 10 FCT schools, delivered by NYSC CDS volunteers. Covers flooding, fire, windstorm, road safety, and disease. DG cleared. Launch 15 July 2026.", meta:"📋 Preparedness/DRR · 🗓 Jul 2026 · 🎯 10 FCT schools"},
+      {dept:"DRR — CBDRR", deptClass:"drr", title:"NEMA-UNDP Community-Based DRR — Module III", body:"Module III covering VCA methodology, community action planning, and participatory hazard mapping has been cleared for distribution to all zonal offices and SEMA partners.", meta:"📋 DRR/UNDP · 🗓 Jun 2026 · ✅ Ready for distribution"},
+      {dept:"Preparedness — LEMC", deptClass:"", title:"LEMC Simulation Exercise — Kaduna Pilot", body:"Tabletop simulation for Local Emergency Management Committees across 5 LGAs in Kaduna State in August 2026. Tests multi-hazard response coordination between LEMCs, SEMA, and NEMA zonal offices.", meta:"📋 Preparedness Dept · 🗓 Aug 2026 · 📍 Kaduna — 5 LGAs"}
+    ],
+    stats: [
+      {num:"24", lbl:"Training Modules Active"},
+      {num:"34",  lbl:"SEMA with Plans"},
+      {num:"72%", lbl:"LEMC Functional"},
+      {num:"6",   lbl:"New Programmes 2026"}
+    ],
+    calendar: [
+      {day:"03", mon:"Jul", title:"VCA Pilot Launch — NW Zone", sub:"Kaduna · DRR Dept"},
+      {day:"15", mon:"Jul", title:"SAFE STEPS FCT School Launch", sub:"10 schools · NYSC CDS"},
+      {day:"22", mon:"Jul", title:"GESI Orientation — Zonal Staff", sub:"Hybrid · All 6 zones"},
+      {day:"04", mon:"Aug", title:"LEMC Simulation — Kaduna", sub:"5 LGAs · Preparedness Dept"}
+    ],
+    capacity: [
+      {label:"Early Warning",   pct:64, cls:"mod"},
+      {label:"Stock Adequacy",  pct:41, cls:"high"},
+      {label:"Trained Staff",   pct:58, cls:"mod"},
+      {label:"LEMC Functional", pct:72, cls:"low"},
+      {label:"Contingency Plans",pct:55,cls:"mod"}
+    ]
+  },
+
+  policy: {
+    docs: [
+      {tag:"NEW",      tagClass:"tag-new",      title:"NEMA GESI Policy for Disaster Risk Management", body:"Revised policy establishing binding commitments for gender mainstreaming across NEMA's prevention, preparedness, response, and recovery functions. Includes expanded provisions on disability, child protection, and SEMA accountability. Second draft in internal review — feedback due 30 June 2026.", meta:"📋 DRR/Gender Unit · 🗓 Jun 2026 · ⏳ Under Review"},
+      {tag:"CIRCULAR", tagClass:"tag-circular", title:"DG Circular: Pre-Season Flood Preparedness Protocol Activation — 2026", body:"Activates NEMA's pre-season flood protocol effective 1 May 2026. All zonal offices directed to verify stock, activate inter-agency coordination with NIHSA and NiMet, and confirm SEMA contingency plan currency.", meta:"📋 Office of the DG · 🗓 May 2026 · ✅ In Effect"},
+      {tag:"REVISED",  tagClass:"tag-revised",  title:"LEMC Operational Framework — Updated Edition 2026", body:"Strengthens LGA-level coordination authority, clarifies SEMA-LEMC reporting lines, introduces minimum quarterly meeting requirements, and integrates disability-inclusive guidance. Approved and distributed to all 36 SEMA offices.", meta:"📋 DRR/Preparedness Unit · 🗓 Apr 2026 · ✅ Approved & Distributed"},
+      {tag:"NEW",      tagClass:"tag-new",      title:"National VCA Implementation Framework — Phase 1 Design Document", body:"Design document for the National VCA addressing a 16-year gap. Phase 1 covers North-West Zone pilot. Includes pilot budget, M&E framework, and national scale-up roadmap for all 37 jurisdictions. Pending DG approval.", meta:"📋 DRR Dept · 🗓 Jun 2026 · ⏳ Pending DG Approval"}
+    ],
+    pipeline: [
+      {tag:"DRAFT",    tagClass:"tag-draft",    title:"National MHEWS Policy Framework", meta:"Due Q3 2026 · DRR/EW Unit"},
+      {tag:"REVISED",  tagClass:"tag-revised",  title:"NEMA Act Amendment — Public Consultation Draft", meta:"Due Aug 2026 · Legal Unit"},
+      {tag:"CIRCULAR", tagClass:"tag-circular", title:"Climate Adaptation Integration Circular", meta:"Due Jul 2026 · DG Office"}
+    ]
+  },
+
+  media: {
+    cards: [
+      {type:"📢 Press Release", title:"NEMA Activates National Flood Season Preparedness — DG Statement", body:"The Director General confirmed activation of the 2026 flood season preparedness protocol. Highlights pre-positioned relief, early warning coordination, and calls on state governments to activate SEMA structures. Full press briefing scheduled 20 June 2026, NEMA HQ Abuja.", footer:"📅 10 Jun 2026 · 📡 National Wire Distribution · 🖊 Press Unit"},
+      {type:"📻 Public Awareness Campaign", title:"Flood Season Safety Campaign — Live on National Media", body:"Live across NTA national broadcast, FRCN radio, and NEMA's official social media channels. Key messages cover household evacuation, the NEMA emergency hotline (0800-CALL-NEMA), and shelter site locations in high-risk communities.", footer:"📅 Live: 5 Jun 2026 · 📡 NTA · FRCN · Social · 🖊 Press Unit"},
+      {type:"🏫 Community Engagement", title:"SAFE STEPS — Media & Community Launch Strategy", body:"Press Unit is developing a press release package, social media content calendar, photography brief, and community radio segment for FCT stations to support the SAFE STEPS school DRR programme launch in July 2026.", footer:"📅 Launch: Jul 2026 · 📡 FCT Radio · Social · 🖊 Press Unit/DRR"},
+      {type:"📋 Stakeholder Engagement", title:"NEMA at the Nigerian War College — Climate-Security Roundtable", body:"NEMA participated as a discussant at the Nigerian War College roundtable on military responses to climate-driven insecurity. NEMA's brief positioned disaster data as early warning intelligence and framed humanitarian response as conflict prevention.", footer:"📅 May 2026 · 📡 Nigerian War College, Abuja · 🖊 Press Unit/DRR"}
+    ],
+    events: [
+      {day:"20", mon:"Jun", title:"DG Press Briefing — Flood Season", sub:"NEMA HQ, Abuja"},
+      {day:"15", mon:"Jul", title:"SAFE STEPS Launch — Media Day", sub:"FCT Pilot School"},
+      {day:"01", mon:"Aug", title:"Mid-Season Public Statement", sub:"NEMA HQ"}
+    ]
+  },
+
+  hotlines: [
+    {icon:"📞", label:"NEMA Hotline", value:"0800-CALL-NEMA"},
+    {icon:"📞", label:"Operations 24hr", value:"+234 9 523 4880"},
+    {icon:"📞", label:"Media / Press Unit", value:"+234 9 523 4882"},
+    {icon:"📞", label:"DG Office", value:"+234 9 523 4870"},
+    {icon:"📧", label:"Email", value:"info@nema.gov.ng"},
+    {icon:"🌐", label:"Website", value:"www.nema.gov.ng"}
+  ],
+
+  semadirectory: "For the full SEMA contacts directory covering all 36 state offices, contact the DRR Department Monitoring Unit or the Operations Coordination Desk, NEMA HQ, Abuja.",
+
+  directorynote: "This directory is maintained by the Human Resources and Admin Department. To update contact details, notify HR at NEMA HQ. This dashboard is updated by the designated Dashboard Administrator.",
+
+  gallery: [],
+
+  hqcontacts: [
+    {dept:"Office of the Director General", cssClass:"hq", persons:[
+      {name:"[DG Name]", role:"Director General", phone:"[Phone]", email:"[Email]"},
+      {name:"[DDG Name]", role:"Deputy Director General, Operations", phone:"[Phone]", email:"[Email]"},
+      {name:"[DDG Name]", role:"Deputy Director General, Technical", phone:"[Phone]", email:"[Email]"}
+    ]},
+    {dept:"Disaster Risk Reduction", cssClass:"hq", persons:[
+      {name:"[Director Name]", role:"Director, Disaster Risk Reduction", phone:"[Phone]", email:"[Email]"},
+      {name:"[Officer Name]", role:"Head, Monitoring & Evaluation", phone:"[Phone]", email:"[Email]"}
+    ]},
+    {dept:"Search & Rescue", cssClass:"hq", persons:[
+      {name:"[Director Name]", role:"Director, Search & Rescue", phone:"[Phone]", email:"[Email]"},
+      {name:"[Officer Name]", role:"Operations Centre — 24hr Desk", phone:"[Phone]", email:"[Email]"}
+    ]},
+    {dept:"Relief & Rehabilitation", cssClass:"hq", persons:[
+      {name:"[Director Name]", role:"Director, Relief & Rehabilitation", phone:"[Phone]", email:"[Email]"},
+      {name:"[Officer Name]", role:"Head, Relief Distribution", phone:"[Phone]", email:"[Email]"}
+    ]},
+    {dept:"Human Resource Management", cssClass:"hq", persons:[
+      {name:"[Director Name]", role:"Director, Human Resource Management", phone:"[Phone]", email:"[Email]"},
+      {name:"[Officer Name]", role:"Head, Staff Development & Training", phone:"[Phone]", email:"[Email]"}
+    ]},
+    {dept:"Planning, Research & Forecasting", cssClass:"hq", persons:[
+      {name:"[Director Name]", role:"Director, Planning, Research & Forecasting", phone:"[Phone]", email:"[Email]"},
+      {name:"[Officer Name]", role:"Head, Research & Data Management", phone:"[Phone]", email:"[Email]"}
+    ]},
+    {dept:"Finance & Accounts", cssClass:"hq", persons:[
+      {name:"[Director Name]", role:"Director, Finance & Accounts", phone:"[Phone]", email:"[Email]"},
+      {name:"[Officer Name]", role:"Head, Accounts & Audit", phone:"[Phone]", email:"[Email]"}
+    ]},
+    {dept:"Press Unit", cssClass:"hq", persons:[
+      {name:"[Director Name]", role:"Director, Press & Press Unit", phone:"[Phone]", email:"[Email]"},
+      {name:"[Officer Name]", role:"Head, Media Relations", phone:"[Phone]", email:"[Email]"}
+    ]},
+    {dept:"Legal Unit", cssClass:"hq", persons:[
+      {name:"[Director Name]", role:"Director / Legal Adviser", phone:"[Phone]", email:"[Email]"},
+      {name:"[Officer Name]", role:"Senior Legal Officer", phone:"[Phone]", email:"[Email]"}
+    ]},
+    {dept:"General Services", cssClass:"hq", persons:[
+      {name:"[Director Name]", role:"Director, General Services", phone:"[Phone]", email:"[Email]"},
+      {name:"[Officer Name]", role:"Head, Logistics & Facilities", phone:"[Phone]", email:"[Email]"}
+    ]},
+    {dept:"ICT Department", cssClass:"hq", persons:[
+      {name:"[Director Name]", role:"Director, Information & Communication Technology", phone:"[Phone]", email:"[Email]"},
+      {name:"[Officer Name]", role:"Head, Systems & Infrastructure", phone:"[Phone]", email:"[Email]"}
+    ]},
+    {dept:"Air Wing", cssClass:"hq", persons:[
+      {name:"[Director Name]", role:"Director / Chief Pilot, Air Wing", phone:"[Phone]", email:"[Email]"},
+      {name:"[Officer Name]", role:"Air Operations Officer", phone:"[Phone]", email:"[Email]"}
+    ]}
+  ],
+
+  zonecontacts: [
+    {dept:"North-Central Zonal Office", cssClass:"zone-nc", persons:[
+      {name:"Zonal Coordinator", role:"NC Zone Coordinator", phone:"+234 8100 000 001", email:"nc.zone@nema.gov.ng"},
+      {name:"Response Officer", role:"Operations & Response Officer", phone:"+234 8100 000 002", email:"nc.ops@nema.gov.ng"}
+    ]},
+    {dept:"North-East Zonal Office", cssClass:"zone-ne", persons:[
+      {name:"Zonal Coordinator", role:"NE Zone Coordinator", phone:"+234 8100 000 011", email:"ne.zone@nema.gov.ng"},
+      {name:"Health Emergency FP", role:"Health Emergency Focal Point", phone:"+234 8100 000 012", email:"ne.health@nema.gov.ng"}
+    ]},
+    {dept:"North-West Zonal Office", cssClass:"zone-nw", persons:[
+      {name:"Zonal Coordinator", role:"NW Zone Coordinator", phone:"+234 8100 000 021", email:"nw.zone@nema.gov.ng"},
+      {name:"Response Officer", role:"Zonal Response Officer", phone:"+234 8100 000 022", email:"nw.ops@nema.gov.ng"}
+    ]},
+    {dept:"South-South Zonal Office", cssClass:"zone-ss", persons:[
+      {name:"Zonal Coordinator", role:"SS Zone Coordinator", phone:"+234 8100 000 031", email:"ss.zone@nema.gov.ng"}
+    ]},
+    {dept:"South-East Zonal Office", cssClass:"zone-se", persons:[
+      {name:"Zonal Coordinator", role:"SE Zone Coordinator", phone:"+234 8100 000 041", email:"se.zone@nema.gov.ng"}
+    ]},
+    {dept:"South-West Zonal Office", cssClass:"zone-sw", persons:[
+      {name:"Zonal Coordinator", role:"SW Zone Coordinator", phone:"+234 8100 000 051", email:"sw.zone@nema.gov.ng"},
+      {name:"Monitoring Officer", role:"Zonal Monitoring Officer", phone:"+234 8100 000 052", email:"sw.mon@nema.gov.ng"}
+    ]}
+  ]
+};
+
+// ─────────────────────────────────────────
+// STORAGE HELPERS
+// ─────────────────────────────────────────
+const KEY = 'nema_dash_v3_';
+function load(k){ try{ const v=localStorage.getItem(KEY+k); return v?JSON.parse(v):null; }catch(e){ return null; } }
+function save(k,v){ try{ localStorage.setItem(KEY+k,JSON.stringify(v)); }catch(e){} }
+function get(k){ const v=load(k); return v!==null?v:DEFAULTS[k]; }
+
+// ─────────────────────────────────────────
+// RENDER DASHBOARD
+// ─────────────────────────────────────────
+function renderAll(){
+  // date
+  const d=new Date();
+  document.getElementById('live-date').textContent='Updated: '+d.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+
+  // ticker
+  document.getElementById('ticker-content').textContent=get('ticker');
+
+  // hero
+  const h=get('hero');
+  document.getElementById('hero-title').textContent=h.title;
+  document.getElementById('hero-body').textContent=h.body;
+  const hm=document.getElementById('hero-stats');
+  hm.innerHTML=h.stats.map(s=>`<span><div class="label">${s.label}</div>${s.value}</span>`).join('');
+
+  // hazards
+  const sevMap={critical:'pill-critical',warning:'pill-warning',watch:'pill-watch',normal:'pill-clear'};
+  document.getElementById('hazard-cards').innerHTML=get('hazards').map(c=>`
+    <div class="alert-card ${c.severity}">
+      <div class="zone-tag">${c.zone}</div>
+      <h4>${c.title}</h4>
+      <p>${c.body}</p>
+      <div class="card-footer"><span>${c.date}</span><span class="status-pill ${sevMap[c.severity]||'pill-watch'}">${c.statusLabel}</span></div>
+    </div>`).join('');
+
+  // highlights
+  document.getElementById('dept-highlights').innerHTML=get('highlights').map(h=>`
+    <div class="dept-card ${h.deptClass}">
+      <div class="dept-label">${h.dept}</div>
+      <h4>${h.title}</h4>
+      <p>${h.body}</p>
+      <div class="card-meta">${h.meta}</div>
+    </div>`).join('');
+
+  // key stats
+  document.getElementById('key-stats').innerHTML=get('stats').map(s=>`
+    <div class="stat-box"><div class="num">${s.num}</div><div class="lbl">${s.lbl}</div></div>`).join('');
+
+  // events
+  document.getElementById('events-list').innerHTML=get('events').map(e=>`
+    <div class="event-item">
+      <div class="event-date-box"><div class="day">${e.day}</div><div class="mon">${e.mon}</div></div>
+      <div class="event-info"><h5>${e.title}</h5><p>${e.sub}</p></div>
+    </div>`).join('');
+
+  // field reports
+  document.getElementById('ops-reports').innerHTML=get('fieldreports').map(r=>`
+    <div class="field-report">
+      <div class="report-zone-code">${r.zoneCode.replace('\n','<br>')}</div>
+      <div class="report-content">
+        <h4>${r.title}</h4>
+        <p>${r.body}</p>
+        <div class="report-meta"><span>📍 ${r.location}</span><span>🗓 ${r.date}</span><span>👤 ${r.officer}</span></div>
+      </div>
+    </div>`).join('');
+
+  // contacts
+  renderContacts();
+  renderRecovery();
+  renderPreparedness();
+  renderPolicy();
+  renderMedia();
+
+  // edition
+  const ed = get('edition');
+  document.getElementById('meta-edition').textContent = 'Vol. ' + ed.vol + ' · Issue ' + ed.issue + ' · ' + ed.year;
+
+  // hotlines
+  const hl = get('hotlines');
+  document.getElementById('hotlines-display').innerHTML = hl.map(h =>
+    `<div>${h.icon} <strong>${h.label}:</strong> ${h.value}</div>`).join('');
+
+  // sema directory
+  document.getElementById('sema-dir-display').textContent = get('semadirectory');
+
+  // directory note
+  document.getElementById('dir-note-display').textContent = get('directorynote');
+
+  // gallery
+  renderGallery();
+  // notifications
+  renderNotificationBadge();
+}
+
+function renderContacts(){
+  document.getElementById('hq-contacts').innerHTML=get('hqcontacts').map(c=>contactCard(c)).join('');
+  document.getElementById('zone-contacts').innerHTML=get('zonecontacts').map(c=>contactCard(c)).join('');
+}
+// ─────────────────────────────────────────
+// RENDER DYNAMIC PAGES
+// ─────────────────────────────────────────
+function renderRecovery(){
+  const d = get('recovery');
+  const el = document.getElementById('recovery-cards');
+  if(el) el.innerHTML = (d.cards||[]).map(c=>`
+    <div class="dept-card ${c.deptClass||''}">
+      <div class="dept-label">${c.dept}</div>
+      <h4>${c.title}</h4><p>${c.body}</p>
+      <div class="card-meta">${c.meta||''}</div>
+    </div>`).join('');
+  const sg = document.getElementById('recovery-stats');
+  if(sg) sg.innerHTML = (d.stats||[]).map(s=>`
+    <div class="stat-box"><div class="num">${s.num}</div><div class="lbl">${s.lbl}</div></div>`).join('');
+  const stk = document.getElementById('recovery-stock');
+  if(stk) stk.innerHTML = (d.stock||[]).map(s=>`
+    <div class="risk-item">
+      <div class="zone-name">${s.zone}</div>
+      <div class="risk-bar-wrap"><div class="risk-bar ${s.pct>75?'high':s.pct>55?'med':'low'}" style="width:${s.pct}%"></div></div>
+      <div class="risk-val">${s.val}</div>
+    </div>`).join('');
+  const ms = document.getElementById('recovery-milestones');
+  if(ms) ms.innerHTML = (d.milestones||[]).map(e=>eventHTML(e)).join('');
+}
+
+function renderPreparedness(){
+  const d = get('preparedness');
+  const el = document.getElementById('preparedness-cards');
+  if(el) el.innerHTML = (d.cards||[]).map(c=>`
+    <div class="dept-card ${c.deptClass||''}">
+      <div class="dept-label">${c.dept}</div>
+      <h4>${c.title}</h4><p>${c.body}</p>
+      <div class="card-meta">${c.meta||''}</div>
+    </div>`).join('');
+  const sg = document.getElementById('preparedness-stats');
+  if(sg) sg.innerHTML = (d.stats||[]).map(s=>`
+    <div class="stat-box"><div class="num">${s.num}</div><div class="lbl">${s.lbl}</div></div>`).join('');
+  const cal = document.getElementById('preparedness-calendar');
+  if(cal) cal.innerHTML = (d.calendar||[]).map(e=>eventHTML(e)).join('');
+  const cap = document.getElementById('preparedness-capacity');
+  if(cap) cap.innerHTML = (d.capacity||[]).map(c=>`
+    <div class="risk-item">
+      <div class="zone-name">${c.label}</div>
+      <div class="risk-bar-wrap"><div class="risk-bar ${c.cls}" style="width:${c.pct}%"></div></div>
+      <div class="risk-val">${c.pct}%</div>
+    </div>`).join('');
+}
+
+function renderPolicy(){
+  const d = get('policy');
+  const el = document.getElementById('policy-docs');
+  if(el) el.innerHTML = (d.docs||[]).map(doc=>`
+    <div class="policy-doc">
+      <div class="doc-header">
+        <div><span class="policy-tag ${doc.tagClass}">${doc.tag}</span><h4>${doc.title}</h4></div>
+      </div>
+      <p>${doc.body}</p>
+      <div class="report-meta" style="margin-top:10px;">${doc.meta||''}</div>
+    </div>`).join('');
+  const pip = document.getElementById('policy-pipeline');
+  if(pip) pip.innerHTML = (d.pipeline||[]).map(p=>`
+    <div class="policy-item">
+      <span class="policy-tag ${p.tagClass}">${p.tag}</span>
+      <h5>${p.title}</h5>
+      <div class="policy-meta">${p.meta||''}</div>
+    </div>`).join('');
+}
+
+function renderMedia(){
+  const d = get('media');
+  const el = document.getElementById('media-cards');
+  if(el) el.innerHTML = (d.cards||[]).map(c=>`
+    <div class="media-card">
+      <div class="media-type">${c.type}</div>
+      <h4>${c.title}</h4><p>${c.body}</p>
+      <div class="media-footer">${c.footer||''}</div>
+    </div>`).join('');
+  const ev = document.getElementById('media-events');
+  if(ev) ev.innerHTML = (d.events||[]).map(e=>eventHTML(e)).join('');
+  const mh = document.getElementById('media-hotlines');
+  if(mh) mh.innerHTML = get('hotlines').map(h=>`<div>${h.icon} <strong>${h.label}:</strong> ${h.value}</div>`).join('');
+}
+
+function eventHTML(e){
+  return `<div class="event-item">
+    <div class="event-date-box"><div class="day">${e.day}</div><div class="mon">${e.mon}</div></div>
+    <div class="event-info"><h5>${e.title}</h5><p>${e.sub||e.sub}</p></div>
+  </div>`;
+}
+
+function renderGallery(){
+  const imgs = get('gallery');
+  const gc = document.getElementById('gallery-count');
+  if(gc) gc.textContent = imgs.length;
+  const grid = document.getElementById('gallery-grid');
+  if(!grid) return;
+  if(imgs.length===0){
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--ink-light);font-size:13px;">No images yet. Add images via the Admin Panel → Gallery tab.</div>';
+    return;
+  }
+  grid.innerHTML = imgs.map(img => `
+    <div class="gallery-card">
+      ${img.src
+        ? `<img class="gallery-img" src="${img.src}" alt="${img.label||''}">`
+        : `<div class="gallery-img-placeholder">No image</div>`}
+      <div class="gallery-caption">
+        <div class="gc-dept">${img.dept||''}</div>
+        <div class="gc-label">${img.label||'Untitled'}</div>
+        <div class="gc-date">${img.date||''}</div>
+      </div>
+    </div>`).join('');
+}
+
+function contactCard(c){
+  return `<div class="contact-card ${c.cssClass}">
+    <div class="contact-zone">${c.dept}</div>
+    ${c.persons.map(p=>`
+      <div class="contact-person">
+        <div class="cp-name">${p.name}</div>
+        <div class="cp-role">${p.role}</div>
+        <div class="cp-detail">📞 <a href="tel:${p.phone}">${p.phone}</a></div>
+        <div class="cp-detail">📧 <a href="mailto:${p.email}">${p.email}</a></div>
+      </div>`).join('')}
+  </div>`;
+}
+
+// ─────────────────────────────────────────
+// TAB NAV
+// ─────────────────────────────────────────
+document.getElementById('main-nav').addEventListener('click',function(e){
+  const tab=e.target.closest('.nav-tab');
+  if(!tab)return;
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  tab.classList.add('active');
+  document.getElementById('page-'+tab.dataset.page).classList.add('active');
+  window.scrollTo(0,0);
+});
+
+// ─────────────────────────────────────────
+// ROLE-BASED ACCESS SYSTEM
+// ─────────────────────────────────────────
+
+// Access sections map: atab key → human label
+const ALL_SECTIONS = {
+  ticker:        'Alert Ticker',
+  hero:          'Situation Hero',
+  hazards:       'Hazard Cards',
+  highlights:    'Dept Highlights',
+  stats:         'Key Stats',
+  events:        'Events',
+  fieldreports:  'Field Reports',
+  recovery:      'Relief & Rehabilitation',
+  preparedness:  'Preparedness & DRR',
+  policy:        'Policy & Institutional',
+  media:         'Press Unit',
+  hqcontacts:    'HQ Contacts',
+  zonecontacts:  'Zone Contacts',
+  edition:       'Vol / Issue',
+  hotlines:      'Hotlines',
+  semadirectory: 'SEMA Directory',
+  gallery:       'Gallery',
+};
+
+const SUPER_ADMIN_USER = 'superadmin';
+const DEFAULT_SUPER_PW = 'NEMA2026';
+
+let currentUser   = null; // { username, role:'superadmin'|'contributor', sections:[] }
+let currentLocked = false;
+
+function getSuperPw(){ return localStorage.getItem('nema_super_pw') || DEFAULT_SUPER_PW; }
+function getUsers(){
+  try { return JSON.parse(localStorage.getItem('nema_users') || '[]'); } catch(e){ return []; }
+}
+function saveUsersStore(users){ localStorage.setItem('nema_users', JSON.stringify(users)); }
+
+function openAdmin(){
+  document.getElementById('admin-overlay').style.display='block';
+  document.getElementById('admin-user').value='';
+  document.getElementById('admin-pw').value='';
+  document.getElementById('login-err').style.display='none';
+  document.getElementById('admin-body-inner').style.display='none';
+  document.getElementById('login-screen').style.display='block';
+  document.body.style.overflow='hidden';
+}
+function closeAdmin(){
+  document.getElementById('admin-overlay').style.display='none';
+  document.body.style.overflow='';
+  currentUser = null;
+}
+
+function checkPw(){
+  const uname = document.getElementById('admin-user').value.trim().toLowerCase();
+  const pw    = document.getElementById('admin-pw').value;
+  const errEl = document.getElementById('login-err');
+
+  // Super admin check
+  if(uname === SUPER_ADMIN_USER){
+    if(pw === getSuperPw()){
+      currentUser = { username: SUPER_ADMIN_USER, role: 'superadmin', sections: Object.keys(ALL_SECTIONS) };
+      doLogin();
+      return;
+    } else { errEl.style.display='block'; return; }
+  }
+
+  // Contributor check
+  const users = getUsers();
+  const found = users.find(u => u.username.toLowerCase() === uname);
+  if(found && found.password === pw && found.active !== false){
+    currentUser = { username: found.username, role:'contributor', sections: found.sections || [], displayName: found.displayName || found.username };
+    doLogin();
+    return;
+  }
+  errEl.style.display='block';
+}
+
+function doLogin(){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('admin-body-inner').style.display='block';
+
+  // Show role badge
+  const isSA = currentUser.role === 'superadmin';
+  document.getElementById('role-badge').innerHTML =
+    `Role: <span class="user-role-badge ${isSA?'badge-superadmin':'badge-contributor'}">${isSA?'SUPER ADMIN':'CONTRIBUTOR'}</span>`;
+  document.getElementById('session-user').textContent =
+    `Signed in as: ${currentUser.displayName || currentUser.username}`;
+
+  // Show/hide tabs based on access
+  document.querySelectorAll('.admin-tab[data-atab]').forEach(tab => {
+    const key = tab.dataset.atab;
+    if(key === 'password'){
+      tab.style.display = ''; // everyone can change their own password
+      return;
+    }
+    if(key === 'users'){
+      tab.style.display = isSA ? '' : 'none';
+      return;
+    }
+    tab.style.display = (isSA || currentUser.sections.includes(key)) ? '' : 'none';
+  });
+
+  // Show contributor notice if not super admin
+  const notice = document.getElementById('contributor-notice');
+  if(notice){
+    if(!isSA){
+      const labels = currentUser.sections.map(s => ALL_SECTIONS[s] || s).join(', ');
+      notice.textContent = `You have contributor access to: ${labels || 'no sections assigned'}.`;
+      notice.style.display = 'block';
+    } else {
+      notice.style.display = 'none';
+    }
+  }
+
+  // Auto-activate first visible tab
+  let firstVisible = null;
+  document.querySelectorAll('.admin-tab[data-atab]').forEach(tab => {
+    if(!firstVisible && tab.style.display !== 'none') firstVisible = tab;
+  });
+  if(firstVisible){
+    document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.admin-section').forEach(s=>s.classList.remove('active'));
+    firstVisible.classList.add('active');
+    const sec = document.getElementById('asec-'+firstVisible.dataset.atab);
+    if(sec) sec.classList.add('active');
+  }
+
+  loadAdminForms();
+}
+
+function changePassword(){
+  const p1  = document.getElementById('f-pw1').value;
+  const p2  = document.getElementById('f-pw2').value;
+  const msg = document.getElementById('pw-msg');
+  if(!p1){ msg.textContent='Please enter a new password.'; msg.style.color='var(--red-alert)'; msg.style.display='block'; return; }
+  if(p1!==p2){ msg.textContent='Passwords do not match.'; msg.style.color='var(--red-alert)'; msg.style.display='block'; return; }
+
+  if(currentUser && currentUser.role === 'superadmin'){
+    localStorage.setItem('nema_super_pw', p1);
+    msg.textContent = 'Super Admin password changed.';
+  } else if(currentUser){
+    // Change contributor's own password
+    const users = getUsers();
+    const idx = users.findIndex(u => u.username.toLowerCase() === currentUser.username.toLowerCase());
+    if(idx > -1){ users[idx].password = p1; saveUsersStore(users); }
+    msg.textContent = 'Your password has been changed.';
+  }
+  msg.style.color = 'var(--green-mid)'; msg.style.display = 'block';
+  document.getElementById('f-pw1').value = '';
+  document.getElementById('f-pw2').value = '';
+}
+
+// ─────────────────────────────────────────
+// USER MANAGEMENT (Super Admin only)
+// ─────────────────────────────────────────
+const SECTION_GROUPS = [
+  { group: 'Situation & Alerts',  keys: ['ticker','hero','hazards','highlights','stats','events'] },
+  { group: 'Operations',          keys: ['fieldreports'] },
+  { group: 'Contacts & Directory',keys: ['hqcontacts','zonecontacts','hotlines','semadirectory'] },
+  { group: 'Content & Media',     keys: ['gallery','edition'] },
+];
+
+function renderUsersPanel(){
+  const users = getUsers();
+  const list  = document.getElementById('users-list');
+  if(!users.length){
+    list.innerHTML = '<p style="font-size:12px;color:var(--ink-light);margin-bottom:16px;">No contributors yet. Click "+ ADD CONTRIBUTOR" to create one.</p>';
+    return;
+  }
+  list.innerHTML = users.map((u,i) => `
+    <div class="user-card" id="ucard${i}">
+      <div class="user-card-header">
+        <div>
+          <div class="user-card-name">${esc(u.displayName||u.username)} <span style="font-weight:400;color:var(--ink-light);font-size:11px;">@${esc(u.username)}</span></div>
+          <div style="font-size:11px;color:var(--ink-light);margin-top:2px;">${esc(u.role||'Contributor')} &nbsp;·&nbsp; ${u.active===false?'<span style="color:var(--red-alert);">Inactive</span>':'<span style="color:var(--green-mid);">Active</span>'}</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-add" style="margin:0;padding:5px 12px;" onclick="editUser(${i})">Edit</button>
+          <button style="background:none;border:1px solid var(--red-alert);color:var(--red-alert);font-size:10px;font-family:'IBM Plex Mono',monospace;padding:5px 10px;border-radius:3px;cursor:pointer;" onclick="toggleUser(${i})">${u.active===false?'Activate':'Deactivate'}</button>
+        </div>
+      </div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--ink-light);margin-bottom:6px;">ACCESS GRANTED:</div>
+      <div class="access-chips">
+        ${(u.sections||[]).length ? (u.sections||[]).map(s=>`<span class="access-chip">${ALL_SECTIONS[s]||s}</span>`).join('') : '<span style="font-size:11px;color:var(--ink-light);">No sections assigned</span>'}
+      </div>
+    </div>`).join('');
+}
+
+function addUserRow(){
+  openUserModal(-1, { username:'', displayName:'', password:'', role:'Contributor', sections:[], active:true });
+}
+function editUser(i){
+  const users = getUsers();
+  openUserModal(i, users[i]);
+}
+function toggleUser(i){
+  const users = getUsers();
+  users[i].active = users[i].active === false ? true : false;
+  saveUsersStore(users);
+  renderUsersPanel();
+}
+
+function openUserModal(idx, user){
+  // Build modal inline in the users section
+  const isNew = idx === -1;
+  const modalId = 'user-modal';
+  let existing = document.getElementById(modalId);
+  if(existing) existing.remove();
+
+  const sectionCheckboxes = SECTION_GROUPS.map(grp => `
+    <div style="margin-bottom:10px;">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--green-mid);margin-bottom:6px;">${grp.group}</div>
+      <div class="access-checkbox-grid">
+        ${grp.keys.map(k => `
+          <label>
+            <input type="checkbox" name="sec_${k}" ${(user.sections||[]).includes(k)?'checked':''}>
+            ${ALL_SECTIONS[k]||k}
+          </label>`).join('')}
+      </div>
+    </div>`).join('');
+
+  const modal = document.createElement('div');
+  modal.id = modalId;
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:2000;display:flex;align-items:center;justify-content:center;';
+  modal.innerHTML = `
+    <div style="background:white;border-radius:6px;width:580px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.4);">
+      <div style="background:var(--green-deep);padding:16px 20px;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-family:'Playfair Display',serif;font-size:18px;color:white;">${isNew?'Add Contributor':'Edit Contributor'}</span>
+        <button onclick="document.getElementById('user-modal').remove()" style="background:none;border:1px solid rgba(255,255,255,0.3);color:white;padding:4px 12px;cursor:pointer;border-radius:2px;font-size:11px;">✕ CLOSE</button>
+      </div>
+      <div style="padding:20px;">
+        <div class="form-row">
+          <div class="form-group"><label>Full Name / Display Name</label><input type="text" id="um-displayname" value="${esc(user.displayName||'')}"></div>
+          <div class="form-group"><label>Username (for login)</label><input type="text" id="um-username" value="${esc(user.username||'')}" ${isNew?'':'style="background:#f5f5f5;"'}></div>
+        </div>
+        <div class="form-group">
+          <label>${isNew?'Password':'New Password (leave blank to keep current)'}</label>
+          <input type="password" id="um-password" placeholder="${isNew?'Set a password':'Leave blank to keep current'}">
+        </div>
+        <div class="form-group"><label>Role / Department (for display)</label><input type="text" id="um-role" value="${esc(user.role||'Contributor')}"></div>
+        <div style="margin-bottom:6px;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--green-mid);padding-bottom:6px;border-bottom:2px solid var(--green-deep);">SECTION ACCESS</div>
+        ${sectionCheckboxes}
+        <button class="btn-save" style="margin-top:8px;" onclick="saveUserModal(${idx})">SAVE CONTRIBUTOR</button>
+        ${!isNew ? `<button onclick="removeUser(${idx});document.getElementById('user-modal').remove();" style="width:100%;margin-top:8px;background:none;border:1px solid var(--red-alert);color:var(--red-alert);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:10px;cursor:pointer;border-radius:3px;">REMOVE THIS CONTRIBUTOR</button>` : ''}
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+function saveUserModal(idx){
+  const isNew = idx === -1;
+  const uname = document.getElementById('um-username').value.trim().toLowerCase();
+  const dname = document.getElementById('um-displayname').value.trim();
+  const pw    = document.getElementById('um-password').value;
+  const role  = document.getElementById('um-role').value.trim();
+
+  if(!uname){ alert('Username is required.'); return; }
+  if(uname === SUPER_ADMIN_USER){ alert('That username is reserved.'); return; }
+  if(isNew && !pw){ alert('Password is required for new contributors.'); return; }
+
+  const sections = Object.keys(ALL_SECTIONS).filter(k => {
+    const el = document.querySelector(`input[name="sec_${k}"]`);
+    return el && el.checked;
+  });
+
+  const users = getUsers();
+  if(isNew){
+    if(users.find(u=>u.username.toLowerCase()===uname)){ alert('Username already exists.'); return; }
+    users.push({ username:uname, displayName:dname||uname, password:pw, role, sections, active:true });
+  } else {
+    users[idx].displayName = dname || users[idx].username;
+    users[idx].role = role;
+    users[idx].sections = sections;
+    if(pw) users[idx].password = pw;
+  }
+  saveUsersStore(users);
+  document.getElementById('user-modal').remove();
+  renderUsersPanel();
+  showSaveNotice();
+}
+
+function removeUser(i){
+  const users = getUsers();
+  users.splice(i,1);
+  saveUsersStore(users);
+  renderUsersPanel();
+}
+
+function saveUsers(){
+  // Already saved in real-time via saveUserModal; this just refreshes + confirms
+  renderUsersPanel();
+  showSaveNotice();
+}
+
+function showSaveNotice(){
+  const sn = document.getElementById('save-notice');
+  sn.style.display = 'block';
+  setTimeout(()=>sn.style.display='none', 3000);
+}
+
+// ─────────────────────────────────────────
+// ADMIN TABS
+// ─────────────────────────────────────────
+document.querySelectorAll('.admin-tab').forEach(t=>{
+  t.addEventListener('click',function(){
+    if(this.style.display==='none') return; // blocked section
+    document.querySelectorAll('.admin-tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.admin-section').forEach(x=>x.classList.remove('active'));
+    this.classList.add('active');
+    const sec = document.getElementById('asec-'+this.dataset.atab);
+    if(sec) sec.classList.add('active');
+  });
+});
+
+// ─────────────────────────────────────────
+// LOAD ADMIN FORMS
+// ─────────────────────────────────────────
+function loadAdminForms(){
+  // ticker
+  document.getElementById('f-ticker').value=get('ticker');
+
+  // hero
+  const h=get('hero');
+  document.getElementById('f-hero-title').value=h.title;
+  document.getElementById('f-hero-body').value=h.body;
+  ['1','2','3','4'].forEach((n,i)=>{
+    document.getElementById('f-hs'+n+'l').value=h.stats[i]?h.stats[i].label:'';
+    document.getElementById('f-hs'+n+'v').value=h.stats[i]?h.stats[i].value:'';
+  });
+
+  // hazards
+  const hr=document.getElementById('hazard-repeater'); hr.innerHTML='';
+  get('hazards').forEach((c,i)=>hr.insertAdjacentHTML('beforeend',hazardRowHTML(c,i)));
+
+  // highlights
+  const hlr=document.getElementById('highlight-repeater'); hlr.innerHTML='';
+  get('highlights').forEach((h,i)=>hlr.insertAdjacentHTML('beforeend',highlightRowHTML(h,i)));
+
+  // stats
+  const sr=document.getElementById('stats-repeater'); sr.innerHTML='';
+  get('stats').forEach((s,i)=>sr.insertAdjacentHTML('beforeend',`
+    <div class="repeater-item">
+      <div class="form-row">
+        <div class="form-group"><label>Number / Value</label><input type="text" id="sn${i}" value="${esc(s.num)}"></div>
+        <div class="form-group"><label>Label</label><input type="text" id="sl${i}" value="${esc(s.lbl)}"></div>
+      </div>
+    </div>`));
+
+  // events
+  const er=document.getElementById('events-repeater'); er.innerHTML='';
+  get('events').forEach((e,i)=>er.insertAdjacentHTML('beforeend',eventRowHTML(e,i)));
+
+  // field reports
+  const rr=document.getElementById('report-repeater'); rr.innerHTML='';
+  get('fieldreports').forEach((r,i)=>rr.insertAdjacentHTML('beforeend',reportRowHTML(r,i)));
+
+  // edition
+  const ed=get('edition');
+  document.getElementById('f-vol').value=ed.vol;
+  document.getElementById('f-issue').value=ed.issue;
+  document.getElementById('f-year').value=ed.year;
+
+  // hotlines
+  const hlr2=document.getElementById('hotlines-repeater'); hlr2.innerHTML='';
+  get('hotlines').forEach((h,i)=>hlr2.insertAdjacentHTML('beforeend',hotlineRowHTML(h,i)));
+
+  // sema / dir note
+  document.getElementById('f-semadirectory').value=get('semadirectory');
+  document.getElementById('f-directorynote').value=get('directorynote');
+
+  // gallery
+  const gr=document.getElementById('gallery-repeater'); gr.innerHTML='';
+  get('gallery').forEach((g,i)=>gr.insertAdjacentHTML('beforeend',galleryRowHTML(g,i)));
+
+  // users panel (super admin only)
+  if(currentUser && currentUser.role==='superadmin') renderUsersPanel();
+
+  // hq contacts
+  const hqr=document.getElementById('hqcontacts-repeater'); hqr.innerHTML='';
+  get('hqcontacts').forEach((c,i)=>hqr.insertAdjacentHTML('beforeend',contactGroupHTML(c,i,'hq')));
+
+  // zone contacts
+  const zr=document.getElementById('zonecontacts-repeater'); zr.innerHTML='';
+  get('zonecontacts').forEach((c,i)=>zr.insertAdjacentHTML('beforeend',contactGroupHTML(c,i,'zone')));
+
+  // dynamic pages
+  loadDynPageForms();
+}
+
+function esc(s){ return String(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+// ── HAZARD ROW ──
+function hazardRowHTML(c,i){ return `
+  <div class="repeater-item" id="hrow${i}">
+    <button class="btn-remove" onclick="this.parentElement.remove()">✕ Remove</button>
+    <div class="form-row">
+      <div class="form-group"><label>Zone / Dept Tag</label><input type="text" id="hz${i}" value="${esc(c.zone)}"></div>
+      <div class="form-group"><label>Severity</label>
+        <select id="hs${i}">
+          <option value="critical" ${c.severity==='critical'?'selected':''}>Critical</option>
+          <option value="warning"  ${c.severity==='warning' ?'selected':''}>Warning</option>
+          <option value="watch"    ${c.severity==='watch'   ?'selected':''}>Watch / Monitor</option>
+          <option value="normal"   ${c.severity==='normal'  ?'selected':''}>All Clear</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label>Title</label><input type="text" id="ht${i}" value="${esc(c.title)}"></div>
+    <div class="form-group"><label>Body</label><textarea id="hb${i}">${esc(c.body)}</textarea></div>
+    <div class="form-row">
+      <div class="form-group"><label>Status Label</label><input type="text" id="hsl${i}" value="${esc(c.statusLabel)}"></div>
+      <div class="form-group"><label>Date</label><input type="text" id="hd${i}" value="${esc(c.date)}"></div>
+    </div>
+  </div>`; }
+
+function addHazardRow(){
+  const r=document.getElementById('hazard-repeater');
+  const i=r.children.length;
+  r.insertAdjacentHTML('beforeend',hazardRowHTML({zone:'',title:'',body:'',severity:'watch',statusLabel:'WATCH',date:''},i));
+}
+
+// ── HIGHLIGHT ROW ──
+function highlightRowHTML(h,i){ return `
+  <div class="repeater-item" id="hlrow${i}">
+    <button class="btn-remove" onclick="this.parentElement.remove()">✕ Remove</button>
+    <div class="form-row">
+      <div class="form-group"><label>Department Name</label><input type="text" id="hld${i}" value="${esc(h.dept)}"></div>
+      <div class="form-group"><label>Colour Class</label>
+        <select id="hlc${i}">
+          <option value="ops"   ${h.deptClass==='ops'  ?'selected':''}>Blue — Operations</option>
+          <option value="rec"   ${h.deptClass==='rec'  ?'selected':''}>Purple — Recovery</option>
+          <option value="drr"   ${h.deptClass==='drr'  ?'selected':''}>Green — DRR</option>
+          <option value="comms" ${h.deptClass==='comms'?'selected':''}>Amber — Comms/Media</option>
+          <option value=""      ${!h.deptClass         ?'selected':''}>Default</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label>Title</label><input type="text" id="hlt${i}" value="${esc(h.title)}"></div>
+    <div class="form-group"><label>Body</label><textarea id="hlb${i}">${esc(h.body)}</textarea></div>
+    <div class="form-group"><label>Meta Line (e.g. 📋 Dept · 🗓 Date · Status)</label><input type="text" id="hlm${i}" value="${esc(h.meta)}"></div>
+  </div>`; }
+
+function addHighlightRow(){
+  const r=document.getElementById('highlight-repeater');
+  const i=r.children.length;
+  r.insertAdjacentHTML('beforeend',highlightRowHTML({dept:'',deptClass:'',title:'',body:'',meta:''},i));
+}
+
+// ── EVENT ROW ──
+function eventRowHTML(e,i){ return `
+  <div class="repeater-item" id="erow${i}">
+    <button class="btn-remove" onclick="this.parentElement.remove()">✕ Remove</button>
+    <div class="form-row">
+      <div class="form-group"><label>Day (number)</label><input type="text" id="ed${i}" value="${esc(e.day)}" maxlength="2"></div>
+      <div class="form-group"><label>Month (3 letters)</label><input type="text" id="em${i}" value="${esc(e.mon)}" maxlength="3"></div>
+    </div>
+    <div class="form-group"><label>Event Title</label><input type="text" id="et${i}" value="${esc(e.title)}"></div>
+    <div class="form-group"><label>Sub-line (venue / dept)</label><input type="text" id="es${i}" value="${esc(e.sub)}"></div>
+  </div>`; }
+
+function hotlineRowHTML(h,i){ return `
+  <div class="repeater-item" id="hlrow${i}">
+    <button class="btn-remove" onclick="this.parentElement.remove()">✕ Remove</button>
+    <div class="form-row">
+      <div class="form-group"><label>Icon / Emoji</label><input type="text" id="hli${i}" value="${esc(h.icon)}" style="width:80px;"></div>
+      <div class="form-group"><label>Label</label><input type="text" id="hll${i}" value="${esc(h.label)}"></div>
+    </div>
+    <div class="form-group"><label>Value (number, email, URL)</label><input type="text" id="hlv${i}" value="${esc(h.value)}"></div>
+  </div>`; }
+
+function addHotlineRow(){
+  const r=document.getElementById('hotlines-repeater');
+  const i=r.children.length;
+  r.insertAdjacentHTML('beforeend',hotlineRowHTML({icon:'📞',label:'',value:''},i));
+}
+
+function galleryRowHTML(g,i){ return `
+  <div class="repeater-item" id="grow${i}">
+    <button class="btn-remove" onclick="this.parentElement.remove()">✕ Remove</button>
+    <div class="form-row">
+      <div class="form-group"><label>Caption / Label</label><input type="text" id="glb${i}" value="${esc(g.label||'')}"></div>
+      <div class="form-group"><label>Department</label><input type="text" id="gdp${i}" value="${esc(g.dept||'')}"></div>
+    </div>
+    <div class="form-group"><label>Date</label><input type="text" id="gdt${i}" value="${esc(g.date||'')}"></div>
+    <div class="form-group">
+      <label>Image File (JPG, PNG, WebP — under 1MB recommended)</label>
+      <input type="file" id="gfl${i}" accept="image/*" onchange="previewGalleryImg(this,${i})">
+      ${g.src ? `<img class="img-preview" src="${g.src}" id="gpv${i}">` : `<div id="gpv${i}"></div>`}
+      <input type="hidden" id="gsr${i}" value="${g.src?'__loaded__':''}">
+    </div>
+  </div>`; }
+
+function previewGalleryImg(input,i){
+  const file=input.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    document.getElementById('gpv'+i).outerHTML=`<img class="img-preview" src="${e.target.result}" id="gpv${i}">`;
+    document.getElementById('gsr'+i).value=e.target.result;
+    document.getElementById('gfl'+i).value='';
+  };
+  reader.readAsDataURL(file);
+}
+
+function addGalleryRow(){
+  const r=document.getElementById('gallery-repeater');
+  const i=r.children.length;
+  r.insertAdjacentHTML('beforeend',galleryRowHTML({label:'',dept:'',date:'',src:''},i));
+}
+
+function addEventRow(){
+  const r=document.getElementById('events-repeater');
+  const i=r.children.length;
+  r.insertAdjacentHTML('beforeend',eventRowHTML({day:'',mon:'',title:'',sub:''},i));
+}
+
+// ── REPORT ROW ──
+function reportRowHTML(r,i){ return `
+  <div class="repeater-item" id="rrow${i}">
+    <button class="btn-remove" onclick="this.parentElement.remove()">✕ Remove</button>
+    <div class="form-row">
+      <div class="form-group"><label>Zone Code (e.g. NC\nZONE)</label><input type="text" id="rzc${i}" value="${esc(r.zoneCode)}"></div>
+      <div class="form-group"><label>Date</label><input type="text" id="rdt${i}" value="${esc(r.date)}"></div>
+    </div>
+    <div class="form-group"><label>Title</label><input type="text" id="rtl${i}" value="${esc(r.title)}"></div>
+    <div class="form-group"><label>Body</label><textarea id="rbd${i}" rows="4">${esc(r.body)}</textarea></div>
+    <div class="form-row">
+      <div class="form-group"><label>Location</label><input type="text" id="rlc${i}" value="${esc(r.location)}"></div>
+      <div class="form-group"><label>Submitting Officer</label><input type="text" id="rof${i}" value="${esc(r.officer)}"></div>
+    </div>
+  </div>`; }
+
+function addReportRow(){
+  const r=document.getElementById('report-repeater');
+  const i=r.children.length;
+  r.insertAdjacentHTML('beforeend',reportRowHTML({zoneCode:'',title:'',body:'',location:'',date:'',officer:''},i));
+}
+
+// ── CONTACT GROUP ──
+function contactGroupHTML(c,i,type){ return `
+  <div class="repeater-item" id="${type}cg${i}">
+    <button class="btn-remove" onclick="this.parentElement.remove()">✕ Remove Group</button>
+    <div class="form-group"><label>Department / Office Name</label><input type="text" id="${type}cd${i}" value="${esc(c.dept)}"></div>
+    <div class="form-group"><label>CSS Class</label>
+      <select id="${type}cc${i}">
+        <option value="hq"       ${c.cssClass==='hq'      ?'selected':''}>HQ (Gold top)</option>
+        <option value="zone-nc"  ${c.cssClass==='zone-nc' ?'selected':''}>NC Zone (Blue)</option>
+        <option value="zone-ne"  ${c.cssClass==='zone-ne' ?'selected':''}>NE Zone (Red)</option>
+        <option value="zone-nw"  ${c.cssClass==='zone-nw' ?'selected':''}>NW Zone (Purple)</option>
+        <option value="zone-ss"  ${c.cssClass==='zone-ss' ?'selected':''}>SS Zone (Green)</option>
+        <option value="zone-se"  ${c.cssClass==='zone-se' ?'selected':''}>SE Zone (Orange)</option>
+        <option value="zone-sw"  ${c.cssClass==='zone-sw' ?'selected':''}>SW Zone (Teal)</option>
+      </select>
+    </div>
+    <div id="${type}persons${i}">
+      ${(c.persons||[]).map((p,j)=>personRowHTML(p,i,j,type)).join('')}
+    </div>
+    <button class="btn-add" style="margin-top:6px;" onclick="addPerson('${type}',${i})">+ Add Person</button>
+  </div>`; }
+
+function personRowHTML(p,gi,pi,type){ return `
+  <div class="repeater-item" id="${type}pr${gi}_${pi}" style="background:#fff;margin-bottom:8px;">
+    <button class="btn-remove" onclick="this.parentElement.remove()">✕</button>
+    <div class="form-row">
+      <div class="form-group"><label>Name / Title</label><input type="text" id="${type}pn${gi}_${pi}" value="${esc(p.name)}"></div>
+      <div class="form-group"><label>Role / Position</label><input type="text" id="${type}pr2${gi}_${pi}" value="${esc(p.role)}"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Phone</label><input type="text" id="${type}pp${gi}_${pi}" value="${esc(p.phone)}"></div>
+      <div class="form-group"><label>Email</label><input type="text" id="${type}pe${gi}_${pi}" value="${esc(p.email)}"></div>
+    </div>
+  </div>`; }
+
+function addPerson(type,gi){
+  const container=document.getElementById(type+'persons'+gi);
+  const pi=container.children.length;
+  container.insertAdjacentHTML('beforeend',personRowHTML({name:'',role:'',phone:'',email:''},gi,pi,type));
+}
+function addHQContact(){
+  const r=document.getElementById('hqcontacts-repeater');
+  const i=r.children.length;
+  r.insertAdjacentHTML('beforeend',contactGroupHTML({dept:'',cssClass:'hq',persons:[]},i,'hq'));
+}
+function addZoneContact(){
+  const r=document.getElementById('zonecontacts-repeater');
+  const i=r.children.length;
+  r.insertAdjacentHTML('beforeend',contactGroupHTML({dept:'',cssClass:'zone-nc',persons:[]},i,'zone'));
+}
+
+// ─────────────────────────────────────────
+// COLLECT & SAVE
+// ─────────────────────────────────────────
+function saveSection(key){
+  // Access check: contributors can only save their own sections
+  if(currentUser && currentUser.role !== 'superadmin'){
+    if(!currentUser.sections.includes(key)){
+      alert('Access denied: you do not have permission to edit this section.');
+      return;
+    }
+  }
+  let data;
+  if(key==='ticker'){ data=document.getElementById('f-ticker').value; }
+  else if(key==='hero'){
+    data={
+      title:document.getElementById('f-hero-title').value,
+      body:document.getElementById('f-hero-body').value,
+      stats:['1','2','3','4'].map(n=>({label:document.getElementById('f-hs'+n+'l').value,value:document.getElementById('f-hs'+n+'v').value}))
+    };
+  }
+  else if(key==='hazards'){
+    data=[];
+    document.querySelectorAll('#hazard-repeater .repeater-item').forEach((_,i)=>{
+      const z=document.getElementById('hz'+i); if(!z)return;
+      data.push({zone:z.value,severity:document.getElementById('hs'+i).value,title:document.getElementById('ht'+i).value,body:document.getElementById('hb'+i).value,statusLabel:document.getElementById('hsl'+i).value,date:document.getElementById('hd'+i).value});
+    });
+  }
+  else if(key==='highlights'){
+    data=[];
+    document.querySelectorAll('#highlight-repeater .repeater-item').forEach((_,i)=>{
+      const d=document.getElementById('hld'+i); if(!d)return;
+      data.push({dept:d.value,deptClass:document.getElementById('hlc'+i).value,title:document.getElementById('hlt'+i).value,body:document.getElementById('hlb'+i).value,meta:document.getElementById('hlm'+i).value});
+    });
+  }
+  else if(key==='stats'){
+    data=[];
+    document.querySelectorAll('#stats-repeater .repeater-item').forEach((_,i)=>{
+      const n=document.getElementById('sn'+i); if(!n)return;
+      data.push({num:n.value,lbl:document.getElementById('sl'+i).value});
+    });
+  }
+  else if(key==='events'){
+    data=[];
+    document.querySelectorAll('#events-repeater .repeater-item').forEach((_,i)=>{
+      const d=document.getElementById('ed'+i); if(!d)return;
+      data.push({day:d.value,mon:document.getElementById('em'+i).value,title:document.getElementById('et'+i).value,sub:document.getElementById('es'+i).value});
+    });
+  }
+  else if(key==='fieldreports'){
+    data=[];
+    document.querySelectorAll('#report-repeater .repeater-item').forEach((_,i)=>{
+      const z=document.getElementById('rzc'+i); if(!z)return;
+      data.push({zoneCode:z.value,title:document.getElementById('rtl'+i).value,body:document.getElementById('rbd'+i).value,location:document.getElementById('rlc'+i).value,date:document.getElementById('rdt'+i).value,officer:document.getElementById('rof'+i).value});
+    });
+  }
+  else if(key==='edition'){
+    data={vol:document.getElementById('f-vol').value,issue:document.getElementById('f-issue').value,year:document.getElementById('f-year').value};
+  }
+  else if(key==='hotlines'){
+    data=[];
+    document.querySelectorAll('#hotlines-repeater .repeater-item').forEach((_,i)=>{
+      const ic=document.getElementById('hli'+i); if(!ic)return;
+      data.push({icon:ic.value,label:document.getElementById('hll'+i).value,value:document.getElementById('hlv'+i).value});
+    });
+  }
+  else if(key==='semadirectory'){
+    save('semadirectory',document.getElementById('f-semadirectory').value);
+    save('directorynote',document.getElementById('f-directorynote').value);
+    renderAll();
+    showSaveNotice();
+    return;
+  }
+  else if(key==='gallery'){
+    data=[];
+    const rows=document.querySelectorAll('#gallery-repeater .repeater-item');
+    for(let i=0;i<rows.length;i++){
+      const lb=document.getElementById('glb'+i); if(!lb)continue;
+      const srcEl=document.getElementById('gsr'+i);
+      let src='';
+      if(srcEl&&srcEl.value&&srcEl.value!=='__loaded__'){
+        src=srcEl.value; // base64 from file picker
+      } else {
+        const prev=document.getElementById('gpv'+i);
+        src=(prev&&prev.tagName==='IMG'&&prev.src.startsWith('data:'))?prev.src:'';
+      }
+      data.push({label:lb.value,dept:document.getElementById('gdp'+i).value,date:document.getElementById('gdt'+i).value,src});
+    }
+  }
+  else if(key==='hqcontacts'||key==='zonecontacts'){
+    const type=key==='hqcontacts'?'hq':'zone';
+    data=[];
+    document.querySelectorAll('#'+key+'-repeater > .repeater-item').forEach((_,i)=>{
+      const d=document.getElementById(type+'cd'+i); if(!d)return;
+      const persons=[];
+      document.querySelectorAll('#'+type+'persons'+i+' > .repeater-item').forEach((_,j)=>{
+        const n=document.getElementById(type+'pn'+i+'_'+j); if(!n)return;
+        persons.push({name:n.value,role:document.getElementById(type+'pr2'+i+'_'+j).value,phone:document.getElementById(type+'pp'+i+'_'+j).value,email:document.getElementById(type+'pe'+i+'_'+j).value});
+      });
+      data.push({dept:d.value,cssClass:document.getElementById(type+'cc'+i).value,persons});
+    });
+  }
+
+  recordChange(key);
+  save(key,data);
+  renderAll();
+  showSaveNotice();
+}
+
+// ─────────────────────────────────────────
+// DYNAMIC PAGE ADMIN HELPERS
+// ─────────────────────────────────────────
+function deptCardHTML(c, i, repId, pageKey){
+  const classes = [{v:'',l:'Default'},{v:'ops',l:'Blue — Operations'},{v:'rec',l:'Purple — Recovery'},{v:'drr',l:'Green — DRR'},{v:'comms',l:'Amber — Comms'}];
+  return `<div class="repeater-item" id="${repId}_${i}">
+    <button class="btn-remove" onclick="this.parentElement.remove()">✕ Remove</button>
+    <div class="form-row">
+      <div class="form-group"><label>Department Label</label><input type="text" id="${repId}_dept_${i}" value="${esc(c.dept||'')}"></div>
+      <div class="form-group"><label>Card Colour</label>
+        <select id="${repId}_cls_${i}">
+          ${classes.map(x=>`<option value="${x.v}" ${(c.deptClass||'')===x.v?'selected':''}>${x.l}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label>Title</label><input type="text" id="${repId}_ttl_${i}" value="${esc(c.title||'')}"></div>
+    <div class="form-group"><label>Body</label><textarea id="${repId}_bdy_${i}" rows="3">${esc(c.body||'')}</textarea></div>
+    <div class="form-group"><label>Meta line</label><input type="text" id="${repId}_met_${i}" value="${esc(c.meta||'')}"></div>
+  </div>`;
+}
+
+function collectDeptCards(repId){
+  const items = [];
+  document.querySelectorAll(`#${repId} .repeater-item`).forEach((_,i)=>{
+    const dept = document.getElementById(`${repId}_dept_${i}`); if(!dept) return;
+    items.push({ dept: dept.value, deptClass: document.getElementById(`${repId}_cls_${i}`).value,
+      title: document.getElementById(`${repId}_ttl_${i}`).value,
+      body:  document.getElementById(`${repId}_bdy_${i}`).value,
+      meta:  document.getElementById(`${repId}_met_${i}`).value });
+  });
+  return items;
+}
+
+function addDeptCardRow(repId, pageKey){
+  const r = document.getElementById(repId);
+  const i = r.children.length;
+  r.insertAdjacentHTML('beforeend', deptCardHTML({}, i, repId, pageKey));
+}
+
+function addEventToRep(repId){
+  const r = document.getElementById(repId);
+  const i = r.children.length;
+  r.insertAdjacentHTML('beforeend', `<div class="repeater-item">
+    <button class="btn-remove" onclick="this.parentElement.remove()">✕ Remove</button>
+    <div class="form-row">
+      <div class="form-group"><label>Day</label><input type="text" id="${repId}_d_${i}" maxlength="2" placeholder="15"></div>
+      <div class="form-group"><label>Month</label><input type="text" id="${repId}_m_${i}" maxlength="3" placeholder="Jul"></div>
+    </div>
+    <div class="form-group"><label>Title</label><input type="text" id="${repId}_t_${i}"></div>
+    <div class="form-group"><label>Sub-line</label><input type="text" id="${repId}_s_${i}"></div>
+  </div>`);
+}
+
+function collectEvents(repId){
+  const items = [];
+  document.querySelectorAll(`#${repId} .repeater-item`).forEach((_,i)=>{
+    const d = document.getElementById(`${repId}_d_${i}`); if(!d) return;
+    items.push({ day: d.value, mon: document.getElementById(`${repId}_m_${i}`).value,
+      title: document.getElementById(`${repId}_t_${i}`).value,
+      sub:   document.getElementById(`${repId}_s_${i}`).value });
+  });
+  return items;
+}
+
+function addPolicyDocRow(repId){
+  const r = document.getElementById(repId);
+  const i = r.children.length;
+  const tags = [{v:'tag-new',l:'NEW'},{v:'tag-revised',l:'REVISED'},{v:'tag-circular',l:'CIRCULAR'},{v:'tag-draft',l:'DRAFT'}];
+  r.insertAdjacentHTML('beforeend', `<div class="repeater-item">
+    <button class="btn-remove" onclick="this.parentElement.remove()">✕ Remove</button>
+    <div class="form-row">
+      <div class="form-group"><label>Tag Label</label><input type="text" id="${repId}_tgl_${i}" placeholder="NEW"></div>
+      <div class="form-group"><label>Tag Class</label>
+        <select id="${repId}_tgc_${i}">
+          ${tags.map(t=>`<option value="${t.v}">${t.l}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label>Title</label><input type="text" id="${repId}_ttl_${i}"></div>
+    <div class="form-group"><label>Body</label><textarea id="${repId}_bdy_${i}" rows="3"></textarea></div>
+    <div class="form-group"><label>Meta</label><input type="text" id="${repId}_met_${i}" placeholder="📋 Unit · 🗓 Date · Status"></div>
+  </div>`);
+}
+
+function collectPolicyDocs(repId){
+  const items = [];
+  document.querySelectorAll(`#${repId} .repeater-item`).forEach((_,i)=>{
+    const t = document.getElementById(`${repId}_ttl_${i}`); if(!t) return;
+    items.push({ tag: document.getElementById(`${repId}_tgl_${i}`).value,
+      tagClass: document.getElementById(`${repId}_tgc_${i}`).value,
+      title: t.value, body: document.getElementById(`${repId}_bdy_${i}`).value,
+      meta: document.getElementById(`${repId}_met_${i}`).value });
+  });
+  return items;
+}
+
+function addPipelineRow(repId){
+  const r = document.getElementById(repId);
+  const i = r.children.length;
+  const tags = [{v:'tag-new',l:'NEW'},{v:'tag-revised',l:'REVISED'},{v:'tag-circular',l:'CIRCULAR'},{v:'tag-draft',l:'DRAFT'}];
+  r.insertAdjacentHTML('beforeend', `<div class="repeater-item">
+    <button class="btn-remove" onclick="this.parentElement.remove()">✕ Remove</button>
+    <div class="form-row">
+      <div class="form-group"><label>Tag</label>
+        <select id="${repId}_tgc_${i}">${tags.map(t=>`<option value="${t.v}">${t.l}</option>`).join('')}</select>
+      </div>
+      <div class="form-group"><label>Tag Label</label><input type="text" id="${repId}_tgl_${i}" placeholder="DRAFT"></div>
+    </div>
+    <div class="form-group"><label>Title</label><input type="text" id="${repId}_ttl_${i}"></div>
+    <div class="form-group"><label>Meta</label><input type="text" id="${repId}_met_${i}" placeholder="Due Q3 2026 · Unit"></div>
+  </div>`);
+}
+
+function collectPipeline(repId){
+  const items = [];
+  document.querySelectorAll(`#${repId} .repeater-item`).forEach((_,i)=>{
+    const t = document.getElementById(`${repId}_ttl_${i}`); if(!t) return;
+    items.push({ tag: document.getElementById(`${repId}_tgl_${i}`).value,
+      tagClass: document.getElementById(`${repId}_tgc_${i}`).value,
+      title: t.value, meta: document.getElementById(`${repId}_met_${i}`).value });
+  });
+  return items;
+}
+
+function addMediaCardRow(repId){
+  const r = document.getElementById(repId);
+  const i = r.children.length;
+  r.insertAdjacentHTML('beforeend', `<div class="repeater-item">
+    <button class="btn-remove" onclick="this.parentElement.remove()">✕ Remove</button>
+    <div class="form-group"><label>Type / Icon Label</label><input type="text" id="${repId}_typ_${i}" placeholder="📢 Press Release"></div>
+    <div class="form-group"><label>Title</label><input type="text" id="${repId}_ttl_${i}"></div>
+    <div class="form-group"><label>Body</label><textarea id="${repId}_bdy_${i}" rows="3"></textarea></div>
+    <div class="form-group"><label>Footer (date · channel · dept)</label><input type="text" id="${repId}_ftr_${i}" placeholder="📅 Date · 📡 Channel · 🖊 Dept"></div>
+  </div>`);
+}
+
+function collectMediaCards(repId){
+  const items = [];
+  document.querySelectorAll(`#${repId} .repeater-item`).forEach((_,i)=>{
+    const t = document.getElementById(`${repId}_ttl_${i}`); if(!t) return;
+    items.push({ type: document.getElementById(`${repId}_typ_${i}`).value,
+      title: t.value, body: document.getElementById(`${repId}_bdy_${i}`).value,
+      footer: document.getElementById(`${repId}_ftr_${i}`).value });
+  });
+  return items;
+}
+
+// Stats repeater (4 boxes)
+function loadStatsRep(repId, stats){
+  const r = document.getElementById(repId); if(!r) return;
+  r.innerHTML = stats.map((s,i)=>`<div class="repeater-item">
+    <div class="form-row">
+      <div class="form-group"><label>Number / Value</label><input type="text" id="${repId}_n_${i}" value="${esc(s.num||'')}"></div>
+      <div class="form-group"><label>Label</label><input type="text" id="${repId}_l_${i}" value="${esc(s.lbl||'')}"></div>
+    </div>
+  </div>`).join('');
+}
+function collectStats(repId){
+  const items = [];
+  document.querySelectorAll(`#${repId} .repeater-item`).forEach((_,i)=>{
+    const n = document.getElementById(`${repId}_n_${i}`); if(!n) return;
+    items.push({ num: n.value, lbl: document.getElementById(`${repId}_l_${i}`).value });
+  });
+  return items;
+}
+
+// Stock repeater (6 zones — fixed)
+function loadStockRep(repId, stock){
+  const r = document.getElementById(repId); if(!r) return;
+  r.innerHTML = stock.map((s,i)=>`<div class="repeater-item">
+    <div class="form-row">
+      <div class="form-group"><label>Zone</label><input type="text" id="${repId}_z_${i}" value="${esc(s.zone||'')}"></div>
+      <div class="form-group"><label>% (bar width)</label><input type="number" min="0" max="100" id="${repId}_p_${i}" value="${s.pct||0}"></div>
+    </div>
+    <div class="form-group"><label>Value Label</label><input type="text" id="${repId}_v_${i}" value="${esc(s.val||'')}"></div>
+  </div>`).join('');
+}
+function collectStock(repId){
+  const items = [];
+  document.querySelectorAll(`#${repId} .repeater-item`).forEach((_,i)=>{
+    const z = document.getElementById(`${repId}_z_${i}`); if(!z) return;
+    items.push({ zone: z.value, pct: parseInt(document.getElementById(`${repId}_p_${i}`).value)||0,
+      val: document.getElementById(`${repId}_v_${i}`).value });
+  });
+  return items;
+}
+
+// Capacity repeater
+function loadCapRep(repId, cap){
+  const r = document.getElementById(repId); if(!r) return;
+  r.innerHTML = cap.map((c,i)=>`<div class="repeater-item">
+    <div class="form-row">
+      <div class="form-group"><label>Indicator Label</label><input type="text" id="${repId}_l_${i}" value="${esc(c.label||'')}"></div>
+      <div class="form-group"><label>Percentage</label><input type="number" min="0" max="100" id="${repId}_p_${i}" value="${c.pct||0}"></div>
+    </div>
+  </div>`).join('');
+}
+function collectCap(repId){
+  const items = [];
+  document.querySelectorAll(`#${repId} .repeater-item`).forEach((_,i)=>{
+    const l = document.getElementById(`${repId}_l_${i}`); if(!l) return;
+    const pct = parseInt(document.getElementById(`${repId}_p_${i}`).value)||0;
+    const cls = pct>=75?'high':pct>=55?'med':pct>=40?'mod':'low';
+    items.push({ label: l.value, pct, cls });
+  });
+  return items;
+}
+
+// Load events into a repeater
+function loadEventsRep(repId, events){
+  const r = document.getElementById(repId); if(!r) return;
+  r.innerHTML = '';
+  events.forEach((e,i)=>{
+    r.insertAdjacentHTML('beforeend', `<div class="repeater-item">
+      <button class="btn-remove" onclick="this.parentElement.remove()">✕ Remove</button>
+      <div class="form-row">
+        <div class="form-group"><label>Day</label><input type="text" id="${repId}_d_${i}" value="${esc(e.day||'')}" maxlength="2"></div>
+        <div class="form-group"><label>Month</label><input type="text" id="${repId}_m_${i}" value="${esc(e.mon||'')}" maxlength="3"></div>
+      </div>
+      <div class="form-group"><label>Title</label><input type="text" id="${repId}_t_${i}" value="${esc(e.title||'')}"></div>
+      <div class="form-group"><label>Sub-line</label><input type="text" id="${repId}_s_${i}" value="${esc(e.sub||'')}"></div>
+    </div>`);
+  });
+}
+
+// Load dept cards into a repeater
+function loadDeptCardsRep(repId, cards){
+  const r = document.getElementById(repId); if(!r) return;
+  r.innerHTML = '';
+  cards.forEach((c,i) => r.insertAdjacentHTML('beforeend', deptCardHTML(c, i, repId, '')));
+}
+
+// Load policy docs into repeater
+function loadPolicyDocsRep(repId, docs){
+  const r = document.getElementById(repId); if(!r) return;
+  r.innerHTML = '';
+  const tags = [{v:'tag-new',l:'NEW'},{v:'tag-revised',l:'REVISED'},{v:'tag-circular',l:'CIRCULAR'},{v:'tag-draft',l:'DRAFT'}];
+  docs.forEach((d,i)=>{
+    r.insertAdjacentHTML('beforeend', `<div class="repeater-item">
+      <button class="btn-remove" onclick="this.parentElement.remove()">✕ Remove</button>
+      <div class="form-row">
+        <div class="form-group"><label>Tag Label</label><input type="text" id="${repId}_tgl_${i}" value="${esc(d.tag||'')}"></div>
+        <div class="form-group"><label>Tag Class</label>
+          <select id="${repId}_tgc_${i}">${tags.map(t=>`<option value="${t.v}" ${d.tagClass===t.v?'selected':''}>${t.l}</option>`).join('')}</select>
+        </div>
+      </div>
+      <div class="form-group"><label>Title</label><input type="text" id="${repId}_ttl_${i}" value="${esc(d.title||'')}"></div>
+      <div class="form-group"><label>Body</label><textarea id="${repId}_bdy_${i}" rows="3">${esc(d.body||'')}</textarea></div>
+      <div class="form-group"><label>Meta</label><input type="text" id="${repId}_met_${i}" value="${esc(d.meta||'')}"></div>
+    </div>`);
+  });
+}
+
+function loadPipelineRep(repId, pipe){
+  const r = document.getElementById(repId); if(!r) return;
+  r.innerHTML = '';
+  const tags = [{v:'tag-new',l:'NEW'},{v:'tag-revised',l:'REVISED'},{v:'tag-circular',l:'CIRCULAR'},{v:'tag-draft',l:'DRAFT'}];
+  pipe.forEach((p,i)=>{
+    r.insertAdjacentHTML('beforeend', `<div class="repeater-item">
+      <button class="btn-remove" onclick="this.parentElement.remove()">✕ Remove</button>
+      <div class="form-row">
+        <div class="form-group"><label>Tag Class</label>
+          <select id="${repId}_tgc_${i}">${tags.map(t=>`<option value="${t.v}" ${p.tagClass===t.v?'selected':''}>${t.l}</option>`).join('')}</select>
+        </div>
+        <div class="form-group"><label>Tag Label</label><input type="text" id="${repId}_tgl_${i}" value="${esc(p.tag||'')}"></div>
+      </div>
+      <div class="form-group"><label>Title</label><input type="text" id="${repId}_ttl_${i}" value="${esc(p.title||'')}"></div>
+      <div class="form-group"><label>Meta</label><input type="text" id="${repId}_met_${i}" value="${esc(p.meta||'')}"></div>
+    </div>`);
+  });
+}
+
+function loadMediaCardsRep(repId, cards){
+  const r = document.getElementById(repId); if(!r) return;
+  r.innerHTML = '';
+  cards.forEach((c,i)=>{
+    r.insertAdjacentHTML('beforeend', `<div class="repeater-item">
+      <button class="btn-remove" onclick="this.parentElement.remove()">✕ Remove</button>
+      <div class="form-group"><label>Type / Icon Label</label><input type="text" id="${repId}_typ_${i}" value="${esc(c.type||'')}"></div>
+      <div class="form-group"><label>Title</label><input type="text" id="${repId}_ttl_${i}" value="${esc(c.title||'')}"></div>
+      <div class="form-group"><label>Body</label><textarea id="${repId}_bdy_${i}" rows="3">${esc(c.body||'')}</textarea></div>
+      <div class="form-group"><label>Footer</label><input type="text" id="${repId}_ftr_${i}" value="${esc(c.footer||'')}"></div>
+    </div>`);
+  });
+}
+
+// ── SAVE DYNAMIC PAGE ──
+function saveDynPage(key){
+  if(currentUser && currentUser.role !== 'superadmin' && !currentUser.sections.includes(key)){
+    alert('Access denied: you do not have permission to edit this section.'); return;
+  }
+  let data = get(key);
+  if(key === 'recovery'){
+    data = {
+      cards:      collectDeptCards('recovery-cards-rep'),
+      stats:      collectStats('recovery-stats-rep'),
+      stock:      collectStock('recovery-stock-rep'),
+      milestones: collectEvents('recovery-milestones-rep')
+    };
+  } else if(key === 'preparedness'){
+    data = {
+      cards:    collectDeptCards('prep-cards-rep'),
+      stats:    collectStats('prep-stats-rep'),
+      calendar: collectEvents('prep-cal-rep'),
+      capacity: collectCap('prep-cap-rep')
+    };
+  } else if(key === 'policy'){
+    data = {
+      docs:     collectPolicyDocs('policy-docs-rep'),
+      pipeline: collectPipeline('policy-pipe-rep')
+    };
+  } else if(key === 'media'){
+    data = {
+      cards:  collectMediaCards('media-cards-rep'),
+      events: collectEvents('media-events-rep')
+    };
+  }
+  recordChange(key);
+  save(key, data);
+  renderAll();
+  showSaveNotice();
+}
+
+// ── LOAD NEW SECTIONS IN loadAdminForms ──
+// (called at end of loadAdminForms via hook)
+function loadDynPageForms(){
+  const rec = get('recovery');
+  loadDeptCardsRep('recovery-cards-rep', rec.cards||[]);
+  loadStatsRep('recovery-stats-rep', rec.stats||[]);
+  loadStockRep('recovery-stock-rep', rec.stock||[]);
+  loadEventsRep('recovery-milestones-rep', rec.milestones||[]);
+
+  const prep = get('preparedness');
+  loadDeptCardsRep('prep-cards-rep', prep.cards||[]);
+  loadStatsRep('prep-stats-rep', prep.stats||[]);
+  loadEventsRep('prep-cal-rep', prep.calendar||[]);
+  loadCapRep('prep-cap-rep', prep.capacity||[]);
+
+  const pol = get('policy');
+  loadPolicyDocsRep('policy-docs-rep', pol.docs||[]);
+  loadPipelineRep('policy-pipe-rep', pol.pipeline||[]);
+
+  const med = get('media');
+  loadMediaCardsRep('media-cards-rep', med.cards||[]);
+  loadEventsRep('media-events-rep', med.events||[]);
+}
+
+// ─────────────────────────────────────────
+// AUDIT / CHANGE LOG + TIMESTAMPS
+// ─────────────────────────────────────────
+const SECTION_LABELS = Object.assign({}, ALL_SECTIONS, {
+  recovery:'Relief & Rehab', preparedness:'Preparedness', policy:'Policy', media:'Press Unit'
+});
+
+function recordChange(key){
+  const who = currentUser ? (currentUser.displayName || currentUser.username) : 'System';
+  const now = new Date();
+  const ts  = now.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) +
+              ' ' + now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  // Store per-section timestamp
+  const stamps = JSON.parse(localStorage.getItem('nema_timestamps')||'{}');
+  stamps[key] = { who, ts, time: now.getTime() };
+  localStorage.setItem('nema_timestamps', JSON.stringify(stamps));
+  // Store audit log (last 50 entries)
+  const log = JSON.parse(localStorage.getItem('nema_auditlog')||'[]');
+  log.unshift({ key, label: SECTION_LABELS[key]||key, who, ts });
+  if(log.length > 50) log.length = 50;
+  localStorage.setItem('nema_auditlog', JSON.stringify(log));
+  // Trigger notification badge
+  addNotification(key, who, ts);
+}
+
+// ─────────────────────────────────────────
+// NOTIFICATION SYSTEM
+// ─────────────────────────────────────────
+function getNotifications(){
+  try { return JSON.parse(localStorage.getItem('nema_notifications')||'[]'); } catch(e){ return []; }
+}
+function saveNotifications(n){ localStorage.setItem('nema_notifications', JSON.stringify(n)); }
+
+function addNotification(sectionKey, who, ts){
+  const notifs = getNotifications();
+  notifs.unshift({
+    id: Date.now(),
+    sectionKey,
+    label: SECTION_LABELS[sectionKey] || sectionKey,
+    who,
+    ts,
+    read: false
+  });
+  if(notifs.length > 30) notifs.length = 30;
+  saveNotifications(notifs);
+  renderNotificationBadge();
+  showToast(`${SECTION_LABELS[sectionKey]||sectionKey} updated by ${who}`);
+}
+
+function renderNotificationBadge(){
+  const notifs  = getNotifications();
+  const unread  = notifs.filter(n=>!n.read).length;
+  const badge   = document.getElementById('notif-badge');
+  const counter = document.getElementById('notif-count');
+  if(badge)   badge.style.display  = unread > 0 ? 'flex' : 'none';
+  if(counter) counter.textContent  = unread > 9 ? '9+' : unread;
+  // Also highlight nav tabs that have new content
+  highlightUpdatedTabs();
+}
+
+function highlightUpdatedTabs(){
+  const notifs = getNotifications().filter(n=>!n.read);
+  const updatedPages = new Set();
+  const sectionToPage = {
+    ticker:'situation', hero:'situation', hazards:'situation', highlights:'situation',
+    stats:'situation', events:'situation',
+    fieldreports:'operations',
+    recovery:'recovery', preparedness:'preparedness', policy:'policy', media:'media',
+    hqcontacts:'contacts', zonecontacts:'contacts', hotlines:'contacts', semadirectory:'contacts',
+    gallery:'gallery', edition:'situation'
+  };
+  notifs.forEach(n => { if(sectionToPage[n.sectionKey]) updatedPages.add(sectionToPage[n.sectionKey]); });
+  document.querySelectorAll('.nav-tab[data-page]').forEach(tab=>{
+    const dot = tab.querySelector('.notif-dot');
+    if(updatedPages.has(tab.dataset.page)){
+      if(!dot){ tab.insertAdjacentHTML('beforeend','<span class="notif-dot"></span>'); }
+    } else {
+      if(dot) dot.remove();
+    }
+  });
+}
+
+function showToast(msg){
+  let toast = document.getElementById('nema-toast');
+  if(!toast){
+    toast = document.createElement('div');
+    toast.id = 'nema-toast';
+    toast.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:var(--green-deep);color:var(--amber);font-family:"IBM Plex Mono",monospace;font-size:11px;padding:10px 20px;border-radius:4px;z-index:3000;box-shadow:0 4px 20px rgba(0,0,0,0.3);letter-spacing:0.05em;transition:opacity 0.4s;';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = '✓ ' + msg;
+  toast.style.opacity = '1';
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(()=>{ toast.style.opacity='0'; }, 3500);
+}
+
+function openNotifPanel(){
+  const notifs = getNotifications();
+  // Mark all as read
+  notifs.forEach(n=>n.read=true);
+  saveNotifications(notifs);
+  renderNotificationBadge();
+
+  let panel = document.getElementById('notif-panel');
+  if(panel){ panel.remove(); return; } // toggle
+
+  panel = document.createElement('div');
+  panel.id = 'notif-panel';
+  panel.style.cssText = 'position:fixed;top:60px;right:16px;width:320px;background:white;border:1px solid var(--rule);border-radius:4px;box-shadow:0 8px 30px rgba(0,0,0,0.15);z-index:2500;max-height:420px;overflow-y:auto;';
+  panel.innerHTML = `
+    <div style="background:var(--green-deep);padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;color:var(--amber);">UPDATE NOTIFICATIONS</span>
+      <button onclick="document.getElementById('notif-panel').remove()" style="background:none;border:none;color:rgba(255,255,255,0.6);cursor:pointer;font-size:14px;">✕</button>
+    </div>
+    ${notifs.length === 0
+      ? '<div style="padding:20px;text-align:center;font-size:12px;color:var(--ink-light);">No updates yet.</div>'
+      : notifs.map(n=>`
+        <div style="padding:10px 14px;border-bottom:1px solid var(--rule);background:white;">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--green-mid);margin-bottom:3px;">${n.label}</div>
+          <div style="font-size:12px;font-weight:500;color:var(--ink);">Updated by ${n.who}</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:rgba(0,0,0,0.38);margin-top:2px;">${n.ts}</div>
+        </div>`).join('')}
+  `;
+  document.body.appendChild(panel);
+  // Close on outside click
+  setTimeout(()=>{
+    document.addEventListener('click', function closePanel(e){
+      if(!panel.contains(e.target) && e.target.id !== 'notif-btn'){
+        panel.remove(); document.removeEventListener('click', closePanel);
+      }
+    });
+  }, 100);
+}
+
+// ─────────────────────────────────────────
+// PRINT SUPPORT
+// ─────────────────────────────────────────
+function printDashboard(){
+  window.print();
+}
+
+// ─────────────────────────────────────────
+// MOBILE NAV
+// ─────────────────────────────────────────
+function toggleMobileNav(){
+  const nav = document.getElementById('main-nav');
+  nav.classList.toggle('mobile-open');
+}
+
+// ─────────────────────────────────────────
+// KEYBOARD SHORTCUT: press A three times quickly
+// ─────────────────────────────────────────
+let aCount=0, aTimer=null;
+document.addEventListener('keydown',function(e){
+  if(e.key==='a'||e.key==='A'){
+    aCount++;
+    clearTimeout(aTimer);
+    if(aCount>=3){ aCount=0; openAdmin(); }
+    else{ aTimer=setTimeout(()=>aCount=0,800); }
+  }
+});
+
+// ─────────────────────────────────────────
+// SEED DEFAULT CONTRIBUTOR ACCOUNTS
+// ─────────────────────────────────────────
+// Pre-built accounts for all zones and HQ departments.
+// Passwords are set to a temporary default — Super Admin should
+// reassign passwords via Manage Users before distribution.
+const SEED_USERS = [
+  // ── ZONAL OFFICES ──
+  {
+    username: 'nc.zone',
+    displayName: 'North-Central Zonal Office',
+    password: 'NEMA.NC2026',
+    role: 'Zonal Information Officer — North-Central',
+    sections: ['fieldreports','hazards','stats'],
+    active: true
+  },
+  {
+    username: 'ne.zone',
+    displayName: 'North-East Zonal Office',
+    password: 'NEMA.NE2026',
+    role: 'Zonal Information Officer — North-East',
+    sections: ['fieldreports','hazards','stats'],
+    active: true
+  },
+  {
+    username: 'nw.zone',
+    displayName: 'North-West Zonal Office',
+    password: 'NEMA.NW2026',
+    role: 'Zonal Information Officer — North-West',
+    sections: ['fieldreports','hazards','stats'],
+    active: true
+  },
+  {
+    username: 'ss.zone',
+    displayName: 'South-South Zonal Office',
+    password: 'NEMA.SS2026',
+    role: 'Zonal Information Officer — South-South',
+    sections: ['fieldreports','hazards','stats'],
+    active: true
+  },
+  {
+    username: 'se.zone',
+    displayName: 'South-East Zonal Office',
+    password: 'NEMA.SE2026',
+    role: 'Zonal Information Officer — South-East',
+    sections: ['fieldreports','hazards','stats'],
+    active: true
+  },
+  {
+    username: 'sw.zone',
+    displayName: 'South-West Zonal Office',
+    password: 'NEMA.SW2026',
+    role: 'Zonal Information Officer — South-West',
+    sections: ['fieldreports','hazards','stats'],
+    active: true
+  },
+
+  // ── HQ DEPARTMENTS ──
+  {
+    username: 'drr.hq',
+    displayName: 'Disaster Risk Reduction Dept',
+    password: 'NEMA.DRR2026',
+    role: 'DRR Information Officer',
+    sections: ['ticker','hero','hazards','highlights','stats','events','preparedness'],
+    active: true
+  },
+  {
+    username: 'searchrescue.hq',
+    displayName: 'Search & Rescue Dept',
+    password: 'NEMA.SAR2026',
+    role: 'Search & Rescue Information Officer',
+    sections: ['fieldreports','highlights'],
+    active: true
+  },
+  {
+    username: 'relief.hq',
+    displayName: 'Relief & Rehabilitation Dept',
+    password: 'NEMA.REL2026',
+    role: 'Relief & Rehabilitation Information Officer',
+    sections: ['highlights','stats','recovery'],
+    active: true
+  },
+  {
+    username: 'hrm.hq',
+    displayName: 'Human Resource Management Dept',
+    password: 'NEMA.HRM2026',
+    role: 'HRM Information Officer',
+    sections: ['hqcontacts','highlights'],
+    active: true
+  },
+  {
+    username: 'planning.hq',
+    displayName: 'Planning, Research & Forecasting Dept',
+    password: 'NEMA.PRS2026',
+    role: 'Planning, Research & Forecasting Officer',
+    sections: ['stats','highlights','events','preparedness'],
+    active: true
+  },
+  {
+    username: 'finance.hq',
+    displayName: 'Finance & Accounts Dept',
+    password: 'NEMA.FIN2026',
+    role: 'Finance & Accounts Information Officer',
+    sections: ['highlights'],
+    active: true
+  },
+  {
+    username: 'press.hq',
+    displayName: 'Press Unit',
+    password: 'NEMA.PRESS2026',
+    role: 'Press & Media Information Officer',
+    sections: ['ticker','highlights','gallery','events','media'],
+    active: true
+  },
+  {
+    username: 'legal.hq',
+    displayName: 'Legal Unit',
+    password: 'NEMA.LEG2026',
+    role: 'Legal Unit Information Officer',
+    sections: ['highlights'],
+    active: true
+  },
+  {
+    username: 'genservices.hq',
+    displayName: 'General Services Dept',
+    password: 'NEMA.GEN2026',
+    role: 'General Services Information Officer',
+    sections: ['highlights','hqcontacts'],
+    active: true
+  },
+  {
+    username: 'ict.hq',
+    displayName: 'ICT Department',
+    password: 'NEMA.ICT2026',
+    role: 'ICT Information Officer',
+    sections: ['highlights'],
+    active: true
+  },
+  {
+    username: 'airwing.hq',
+    displayName: 'Air Wing',
+    password: 'NEMA.AIR2026',
+    role: 'Air Wing Information Officer',
+    sections: ['fieldreports','highlights'],
+    active: true
+  },
+];
+
+// Only seed if no users have been created yet (don't overwrite Super Admin's changes)
+(function seedUsers(){
+  try {
+    const existing = JSON.parse(localStorage.getItem('nema_users') || '[]');
+    if(existing.length === 0){
+      localStorage.setItem('nema_users', JSON.stringify(SEED_USERS));
+    }
+  } catch(e){}
+})();
+
+// ─────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────
+renderAll();
+</script>
+</body>
+</html>
